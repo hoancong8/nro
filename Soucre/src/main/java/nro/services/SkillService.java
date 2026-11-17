@@ -750,36 +750,42 @@ public class SkillService {
             return;
         }
 
-        // 1. Nếu chưa có mục tiêu khóa, tìm đối tượng duy nhất gần tâm sét nhất
+        // 1. Nếu chưa có mục tiêu khóa, tìm đối tượng duy nhất gần tâm sét nhất (ưu tiên Boss/Player nếu cự ly tương đương)
         if (player.skillSpecial.targetMob == null && player.skillSpecial.targetPlayer == null) {
-            int minDist = range;
+            int minMobDist = range;
             Mob closestMob = null;
             for (Mob mobMap : player.zone.mobs) {
                 if (mobMap != null && !mobMap.isDie()) {
                     int dist = Util.getDistance(strikeX, strikeY, mobMap.location.x, mobMap.location.y);
-                    if (dist < minDist) {
-                        minDist = dist;
+                    if (dist < minMobDist) {
+                        minMobDist = dist;
                         closestMob = mobMap;
                     }
                 }
             }
-            if (closestMob != null) {
-                player.skillSpecial.targetMob = closestMob;
-            } else {
-                minDist = range;
-                Player closestPl = null;
-                for (Player plMap : player.zone.getHumanoids()) {
-                    if (plMap != null && plMap != player && !plMap.isDie() && this.canAttackPlayer(player, plMap)) {
-                        int dist = Util.getDistance(strikeX, strikeY, plMap.location.x, plMap.location.y);
-                        if (dist < minDist) {
-                            minDist = dist;
-                            closestPl = plMap;
-                        }
+
+            int minPlDist = range;
+            Player closestPl = null;
+            List<Player> targetList = new ArrayList<>(player.zone.getHumanoids());
+            for (Player b : player.zone.getBosses()) {
+                if (b != null && !targetList.contains(b)) {
+                    targetList.add(b);
+                }
+            }
+            for (Player plMap : targetList) {
+                if (plMap != null && plMap != player && !plMap.isDie() && this.canAttackPlayer(player, plMap)) {
+                    int dist = Util.getDistance(strikeX, strikeY, plMap.location.x, plMap.location.y);
+                    if (dist < minPlDist) {
+                        minPlDist = dist;
+                        closestPl = plMap;
                     }
                 }
-                if (closestPl != null) {
-                    player.skillSpecial.targetPlayer = closestPl;
-                }
+            }
+
+            if (closestPl != null && (closestMob == null || minPlDist <= minMobDist)) {
+                player.skillSpecial.targetPlayer = closestPl;
+            } else if (closestMob != null) {
+                player.skillSpecial.targetMob = closestMob;
             }
         }
 
@@ -792,8 +798,28 @@ public class SkillService {
         } else if (player.skillSpecial.targetPlayer != null) {
             Player targetPl = player.skillSpecial.targetPlayer;
             if (!targetPl.isDie() && targetPl.zone == player.zone && this.canAttackPlayer(player, targetPl)) {
-                targetPl.injured(player, (int) dameHit, false, false);
+                int realDame = targetPl.injured(player, (int) dameHit, false, false);
                 PlayerService.gI().sendInfoHpMpMoney(targetPl);
+                Message msg = null;
+                try {
+                    msg = new Message(-60);
+                    msg.writer().writeInt((int) player.id);
+                    msg.writer().writeByte(player.playerSkill.skillSelect.skillId);
+                    msg.writer().writeByte(1);
+                    msg.writer().writeInt((int) targetPl.id);
+                    msg.writer().writeByte(1);
+                    msg.writer().writeByte(0);
+                    msg.writer().writeInt(realDame > 0 ? realDame : (int) dameHit);
+                    msg.writer().writeBoolean(targetPl.isDie());
+                    msg.writer().writeBoolean(player.nPoint.isCrit);
+                    Service.getInstance().sendMessAllPlayerInMap(player, msg);
+                    msg.cleanup();
+                } catch (Exception ex) {
+                } finally {
+                    if (msg != null) {
+                        msg.cleanup();
+                    }
+                }
             }
         }
     }
@@ -1554,6 +1580,9 @@ public class SkillService {
 
     public boolean canAttackPlayer(Player pl1, Player pl2) {
         if (pl2 != null && !pl1.isDie() && !pl2.isDie()) {
+            if (pl1.isBoss || pl2.isBoss) {
+                return true;
+            }
             if (pl1.typePk > 0 || pl2.typePk > 0) {
                 return true;
             }

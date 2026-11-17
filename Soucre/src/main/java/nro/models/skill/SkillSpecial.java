@@ -77,26 +77,40 @@ public class SkillSpecial {
         this.targetMob = null;
         this.targetPlayer = null;
         if (targetX > 0 && targetY > 0 && this.player != null && this.player.zone != null) {
-            int minDist = 200;
+            int minMobDist = 250;
+            Mob closestMob = null;
             for (Mob m : this.player.zone.mobs) {
                 if (m != null && !m.isDie()) {
                     int d = Util.getDistance(targetX, targetY, m.location.x, m.location.y);
-                    if (d < minDist) {
-                        minDist = d;
-                        this.targetMob = m;
+                    if (d < minMobDist) {
+                        minMobDist = d;
+                        closestMob = m;
                     }
                 }
             }
-            if (this.targetMob == null) {
-                for (Player pl : this.player.zone.getHumanoids()) {
-                    if (pl != null && pl != this.player && !pl.isDie() && SkillService.gI().canAttackPlayer(this.player, pl)) {
-                        int d = Util.getDistance(targetX, targetY, pl.location.x, pl.location.y);
-                        if (d < minDist) {
-                            minDist = d;
-                            this.targetPlayer = pl;
-                        }
+
+            int minPlDist = 250;
+            Player closestPl = null;
+            List<Player> targetList = new ArrayList<>(this.player.zone.getHumanoids());
+            for (Player b : this.player.zone.getBosses()) {
+                if (b != null && !targetList.contains(b)) {
+                    targetList.add(b);
+                }
+            }
+            for (Player pl : targetList) {
+                if (pl != null && pl != this.player && !pl.isDie() && SkillService.gI().canAttackPlayer(this.player, pl)) {
+                    int d = Util.getDistance(targetX, targetY, pl.location.x, pl.location.y);
+                    if (d < minPlDist) {
+                        minPlDist = d;
+                        closestPl = pl;
                     }
                 }
+            }
+
+            if (closestPl != null && (closestMob == null || minPlDist <= minMobDist)) {
+                this.targetPlayer = closestPl;
+            } else if (closestMob != null) {
+                this.targetMob = closestMob;
             }
         }
         this._xObjTaget = (short) (skillSpecial.dx + skillSpecial.point * 75); // skill dộ dài

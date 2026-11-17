@@ -7223,15 +7223,15 @@ namespace Game1
 		{
 			short x = -1;
 			short y = -1;
-			if (mobFocus != null && Res.distance(cx, cy, mobFocus.x, mobFocus.y) <= 280)
+			if (charFocus != null && !charFocus.isPet && !charFocus.isMiniPet && Res.distance(cx, cy, charFocus.cx, charFocus.cy) <= 280)
+			{
+				x = (short)charFocus.cx;
+				y = (short)((charFocus.ySd > 0) ? charFocus.ySd : charFocus.cy);
+			}
+			else if (mobFocus != null && Res.distance(cx, cy, mobFocus.x, mobFocus.y) <= 280)
 			{
 				x = (short)mobFocus.x;
 				y = (short)((mobFocus.ySd > 0) ? mobFocus.ySd : (mobFocus.y + 15));
-			}
-			else if (charFocus != null && !charFocus.isPet && !charFocus.isMiniPet && Res.distance(cx, cy, charFocus.cx, charFocus.cy) <= 280)
-			{
-				x = (short)charFocus.cx;
-				y = (short)charFocus.cy;
 			}
 			else
 			{
@@ -7393,13 +7393,13 @@ namespace Game1
 					Point strikeTarget = targetDame;
 					if (strikeTarget == null || strikeTarget.x <= 0 || Res.distance(cx, cy, strikeTarget.x, strikeTarget.y) > 280)
 					{
-						if (mobFocus != null && Res.distance(cx, cy, mobFocus.x, mobFocus.y) <= 280)
+						if (charFocus != null && !charFocus.isPet && !charFocus.isMiniPet && Res.distance(cx, cy, charFocus.cx, charFocus.cy) <= 280)
+						{
+							strikeTarget = new Point { x = charFocus.cx, y = ((charFocus.ySd > 0) ? charFocus.ySd : charFocus.cy) };
+						}
+						else if (mobFocus != null && Res.distance(cx, cy, mobFocus.x, mobFocus.y) <= 280)
 						{
 							strikeTarget = new Point { x = mobFocus.x, y = ((mobFocus.ySd > 0) ? mobFocus.ySd : (mobFocus.y + 15)) };
-						}
-						else if (charFocus != null && !charFocus.isPet && !charFocus.isMiniPet && Res.distance(cx, cy, charFocus.cx, charFocus.cy) <= 280)
-						{
-							strikeTarget = new Point { x = charFocus.cx, y = charFocus.cy };
 						}
 						else
 						{
