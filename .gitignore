@@ -1,0 +1,54 @@
+# Unity
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+[Mm]emoryCaptures/
+PRJ_1M/[Ll]ibrary/
+PRJ_1M/[Tt]emp/
+PRJ_1M/[Oo]bj/
+PRJ_1M/[Bb]uild/
+PRJ_1M/[Bb]uilds/
+PRJ_1M/[Ll]ogs/
+PRJ_1M/[Uu]ser[Ss]ettings/
+PRJ_1M/[Mm]emoryCaptures/
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.opendb
+*.VC.db
+
+# IDE & Editor
+.vs/
+.idea/
+.vscode/
+
+# Logs & temp files
+*.log
+editor_tail.txt
+server_err.log
+server_out.log
+server_out.txt
+Soucre/log/
+_Login/log/
+
+# Java / Maven build caches
+Soucre/target/classes/
+Soucre/target/generated-sources/
+Soucre/target/maven-archiver/
+Soucre/target/maven-status/
+_Login/target/classes/
+_Login/target/generated-sources/
+_Login/target/maven-archiver/
+_Login/target/maven-status/
