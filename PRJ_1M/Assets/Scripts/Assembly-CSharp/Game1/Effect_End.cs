@@ -373,6 +373,12 @@ namespace Game1
 				case 29:
 					set_Skill_LoiThan();
 					break;
+				case 30:
+					set_Skill_Meteor();
+					break;
+				case 31:
+					set_Skill_MagicCircle();
+					break;
 				case 4:
 				case 5:
 				case 6:
@@ -439,6 +445,12 @@ namespace Game1
 					break;
 				case 29:
 					upd_Skill_LoiThan();
+					break;
+				case 30:
+					upd_Skill_Meteor();
+					break;
+				case 31:
+					upd_Skill_MagicCircle();
 					break;
 				case 4:
 				case 5:
@@ -518,6 +530,12 @@ namespace Game1
 					break;
 				case 29:
 					pnt_Skill_LoiThan(g);
+					break;
+				case 30:
+					pnt_Skill_Meteor(g);
+					break;
+				case 31:
+					pnt_Skill_MagicCircle(g);
 					break;
 				case 4:
 				case 5:
@@ -1972,6 +1990,215 @@ namespace Game1
 			if (imgStormCloudSmall != null && imgStormCloudSmall.texture != null && f >= 12 && f <= 110)
 			{
 				g.drawRegion(imgStormCloudSmall, 0, 0, csW, csH, 0, x, cloudY + 15, mGraphics.VCENTER | mGraphics.HCENTER);
+			}
+		}
+
+		public static Image imgMagicCircle;
+		public static Image imgMeteor;
+
+		private void set_Skill_MagicCircle()
+		{
+			f = 0;
+			fRemove = 118;
+			if (charUse != null)
+			{
+				x = charUse.cx;
+				y = (charUse.ySd > 0) ? charUse.ySd : charUse.cy;
+			}
+			if (imgMagicCircle == null || imgMagicCircle.texture == null)
+			{
+				try
+				{
+					string text = Application.dataPath + "/Resources/skill/magic_circle_cast.png";
+					if (System.IO.File.Exists(text))
+					{
+						byte[] imageData = System.IO.File.ReadAllBytes(text);
+						imgMagicCircle = Image.createImage(imageData);
+					}
+					else
+					{
+						imgMagicCircle = Image.createImage("skill/magic_circle_cast");
+					}
+				}
+				catch (Exception ex)
+				{
+					Cout.LogError("Loi load imgMagicCircle: " + ex);
+				}
+			}
+		}
+
+		private void upd_Skill_MagicCircle()
+		{
+			if (charUse != null)
+			{
+				x = charUse.cx;
+				y = (charUse.ySd > 0) ? charUse.ySd : charUse.cy;
+			}
+			if (f == 2)
+			{
+				SoundMn.playSound(x, y, SoundMn.GONG, SoundMn.volume);
+			}
+			if (f == 20)
+			{
+				SoundMn.playSound(x, y, SoundMn.NAMEK_CHARGE, SoundMn.volume);
+			}
+			if (f == 55)
+			{
+				SoundMn.playSound(x, y, SoundMn.KAMEX10_0, SoundMn.volume);
+			}
+			if (f >= 118)
+			{
+				removeEff();
+			}
+		}
+
+		private void pnt_Skill_MagicCircle(mGraphics g)
+		{
+			if (imgMagicCircle != null && imgMagicCircle.texture != null && f < 118)
+			{
+				int zl = mGraphics.zoomLevel > 0 ? mGraphics.zoomLevel : 1;
+				int wGame = 200 / zl;
+				int hGame = 220 / zl;
+				int pivotX = 100 / zl;
+				int pivotY = 192 / zl;
+				int col = f % 12;
+				int row = f / 12;
+				g.drawRegion(imgMagicCircle, col * wGame, row * hGame, wGame, hGame, 0, x - pivotX, y - pivotY, 0);
+			}
+		}
+
+		private void set_Skill_Meteor()
+		{
+			f = 0;
+			fRemove = 151;
+			if (charUse != null)
+			{
+				if (charUse.charFocus != null && !charUse.charFocus.isDie && Res.distance(charUse.cx, charUse.cy, charUse.charFocus.cx, charUse.charFocus.cy) <= 350)
+				{
+					x = charUse.charFocus.cx;
+					y = (charUse.charFocus.ySd > 0) ? charUse.charFocus.ySd : charUse.charFocus.cy;
+				}
+				else if (charUse.mobFocus != null && !charUse.mobFocus.isDie && Res.distance(charUse.cx, charUse.cy, charUse.mobFocus.x, charUse.mobFocus.y) <= 350)
+				{
+					x = charUse.mobFocus.x;
+					y = (charUse.mobFocus.ySd > 0) ? charUse.mobFocus.ySd : (charUse.mobFocus.y + 15);
+				}
+				else if (Res.distance(charUse.cx, charUse.cy, x, y) > 350 || x <= 0)
+				{
+					x = charUse.cx + charUse.cdir * 120;
+					y = charUse.cy;
+				}
+			}
+			if (imgMeteor == null || imgMeteor.texture == null)
+			{
+				try
+				{
+					string text = Application.dataPath + "/Resources/skill/meteor.png";
+					if (System.IO.File.Exists(text))
+					{
+						byte[] imageData = System.IO.File.ReadAllBytes(text);
+						imgMeteor = Image.createImage(imageData);
+					}
+					else
+					{
+						imgMeteor = Image.createImage("skill/meteor");
+					}
+				}
+				catch (Exception ex)
+				{
+					Cout.LogError("Loi load imgMeteor: " + ex);
+				}
+			}
+		}
+
+		private void upd_Skill_Meteor()
+		{
+			if (f < 19 && charUse != null)
+			{
+				if (charUse.charFocus != null && !charUse.charFocus.isDie && Res.distance(charUse.cx, charUse.cy, charUse.charFocus.cx, charUse.charFocus.cy) <= 350)
+				{
+					x = charUse.charFocus.cx;
+					y = (charUse.charFocus.ySd > 0) ? charUse.charFocus.ySd : charUse.charFocus.cy;
+				}
+				else if (charUse.mobFocus != null && !charUse.mobFocus.isDie && Res.distance(charUse.cx, charUse.cy, charUse.mobFocus.x, charUse.mobFocus.y) <= 350)
+				{
+					x = charUse.mobFocus.x;
+					y = (charUse.mobFocus.ySd > 0) ? charUse.mobFocus.ySd : (charUse.mobFocus.y + 15);
+				}
+			}
+
+			if (f == 2)
+			{
+				SoundMn.playSound(x, y - 200, SoundMn.KAMEX10_1, SoundMn.volume);
+			}
+			if (f == 10)
+			{
+				SoundMn.playSound(x, y - 100, SoundMn.NAMEK_LAZER, SoundMn.volume);
+				GameScr.shock_scr = 5;
+			}
+			if (f == 19)
+			{
+				GameScr.shock_scr = 35;
+				SoundMn.playSound(x, y, SoundMn.BIG_EXPLODE, SoundMn.volume);
+				SoundMn.playSound(x, y, SoundMn.EXPLODE_2, SoundMn.volume);
+				SoundMn.playSound(x, y, SoundMn.KAMEX10_1, SoundMn.volume);
+				GameScr.addEffectEnd(10, 0, 0, x, y, 1, 0, 45, null);
+				GameScr.addEffectEnd(11, 0, 0, x - 35, y, 1, 0, 40, null);
+				GameScr.addEffectEnd(11, 0, 0, x + 35, y, 1, 0, 40, null);
+			}
+			if (f == 26)
+			{
+				GameScr.shock_scr = 15;
+			}
+			if (f == 38)
+			{
+				GameScr.shock_scr = 8;
+			}
+			if (f >= 151)
+			{
+				removeEff();
+			}
+		}
+
+		private void pnt_Skill_Meteor(mGraphics g)
+		{
+			if (f >= 19 && f <= 25)
+			{
+				float flashAlpha = 0.65f - (float)(f - 19) * 0.09f;
+				if (flashAlpha > 0.02f)
+				{
+					g.setColor(16777215, flashAlpha);
+					g.fillRect(x - 500, y - 700, 1000, 1000);
+					g.setColor(16777215, 1f);
+				}
+			}
+
+			float heatAlpha = 0f;
+			if (f >= 5 && f <= 19)
+			{
+				heatAlpha = (float)(f - 5) / 14f * 0.35f;
+			}
+			else if (f > 19 && f <= 50)
+			{
+				heatAlpha = (1f - (float)(f - 19) / 31f) * 0.35f;
+			}
+			if (heatAlpha > 0.02f)
+			{
+				g.setColor(16737792, heatAlpha);
+				g.fillRect(x - 500, y - 700, 1000, 1000);
+				g.setColor(16777215, 1f);
+			}
+
+			if (imgMeteor != null && imgMeteor.texture != null && f < 151)
+			{
+				int zl = mGraphics.zoomLevel > 0 ? mGraphics.zoomLevel : 1;
+				int wGame = 272 / zl;
+				int hGame = 232 / zl;
+				int pivotX = 150 / zl;
+				int pivotY = 208 / zl;
+				int col = f % 12;
+				int row = f / 12;
+				g.drawRegion(imgMeteor, col * wGame, row * hGame, wGame, hGame, 0, x - pivotX, y - pivotY, 0);
 			}
 		}
 	}

@@ -744,6 +744,12 @@ public class Service {
               if (text.equals("skillxd")) {
                   SkillService.gI().learSkillSpecial(player, Skill.SUPER_KAME);
               }
+              if (text.equals("skilllt")) {
+                  SkillService.gI().learSkillSpecial(player, Skill.LOI_THAN);
+              }
+              if (text.equals("skilltt") || text.equals("thienthach")) {
+                  SkillService.gI().learSkillSpecial(player, Skill.THIEN_THACH);
+              }
             
             if (text.equals("skillnm")) {
                 StringBuffer sb = new StringBuffer();

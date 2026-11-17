@@ -128,6 +128,9 @@ public class SkillService {
                 case Skill.LOI_THAN:
                     sendEffSkillSpecialID29(player, dir, 0);
                     break;
+                case Skill.THIEN_THACH:
+                    sendEffSkillSpecialID30(player, dir, 0);
+                    break;
                 case Skill.SUPER_KAME:
                     if (player.inventory.itemsBody.get(7).isNotNullItem()) {
                         for (int i = 1; i < player.inventory.itemsBody.get(7).itemOptions.size(); i++) {
@@ -238,6 +241,30 @@ public class SkillService {
                     player.skillSpecial.stepSkillSpecial = 3;
                     dealDamageLoiThan(player, strikeX, strikeY, range, baseDame * 40 / 100);
                 } else if (player.skillSpecial.stepSkillSpecial == 3 && Util.canDoWithTime(player.skillSpecial.lastTimeSkillSpecial, 1500)) {
+                    player.skillSpecial.closeSkillSpecial();
+                }
+                return;
+            }
+            if (player.skillSpecial.skillSpecial.template.id == Skill.THIEN_THACH) {
+                short strikeX = player.skillSpecial.targetX;
+                short strikeY = player.skillSpecial.targetY;
+                if (strikeX <= 0 || strikeY <= 0 || Util.getDistance(player.skillSpecial._xPlayer, player.skillSpecial._yPlayer, strikeX, strikeY) > 350) {
+                    strikeX = (short) (player.skillSpecial._xPlayer + ((player.skillSpecial.dir == -1) ? -120 : 120));
+                    strikeY = player.skillSpecial._yPlayer;
+                }
+                int range = 350;
+                int totalDamagePercent = 1000 + player.skillSpecial.skillSpecial.point * 200;
+                long baseDame = (long) player.nPoint.getDameAttack(false) * totalDamagePercent / 100;
+
+                if (player.skillSpecial.stepSkillSpecial == 0 && Util.canDoWithTime(player.skillSpecial.lastTimeSkillSpecial, 1800)) {
+                    player.skillSpecial.lastTimeSkillSpecial = System.currentTimeMillis();
+                    player.skillSpecial.stepSkillSpecial = 1;
+                    this.startSkillSpecialID30(player, 0);
+                } else if (player.skillSpecial.stepSkillSpecial == 1 && Util.canDoWithTime(player.skillSpecial.lastTimeSkillSpecial, 650)) {
+                    player.skillSpecial.lastTimeSkillSpecial = System.currentTimeMillis();
+                    player.skillSpecial.stepSkillSpecial = 2;
+                    dealDamageThienThach(player, strikeX, strikeY, range, baseDame);
+                } else if (player.skillSpecial.stepSkillSpecial == 2 && Util.canDoWithTime(player.skillSpecial.lastTimeSkillSpecial, 2000)) {
                     player.skillSpecial.closeSkillSpecial();
                 }
                 return;
@@ -790,6 +817,143 @@ public class SkillService {
         }
 
         // 2. CHỈ GÂY SÁT THƯƠNG CHO DUY NHẤT ĐỐI TƯỢNG ĐÃ CHỈ ĐỊNH (Không đánh lan / AoE)
+        if (player.skillSpecial.targetMob != null) {
+            Mob targetMob = player.skillSpecial.targetMob;
+            if (!targetMob.isDie() && targetMob.zone == player.zone) {
+                targetMob.injured(player, (int) dameHit, true);
+            }
+        } else if (player.skillSpecial.targetPlayer != null) {
+            Player targetPl = player.skillSpecial.targetPlayer;
+            if (!targetPl.isDie() && targetPl.zone == player.zone && this.canAttackPlayer(player, targetPl)) {
+                int realDame = targetPl.injured(player, (int) dameHit, false, false);
+                PlayerService.gI().sendInfoHpMpMoney(targetPl);
+                Message msg = null;
+                try {
+                    msg = new Message(-60);
+                    msg.writer().writeInt((int) player.id);
+                    msg.writer().writeByte(player.playerSkill.skillSelect.skillId);
+                    msg.writer().writeByte(1);
+                    msg.writer().writeInt((int) targetPl.id);
+                    msg.writer().writeByte(1);
+                    msg.writer().writeByte(0);
+                    msg.writer().writeInt(realDame > 0 ? realDame : (int) dameHit);
+                    msg.writer().writeBoolean(targetPl.isDie());
+                    msg.writer().writeBoolean(player.nPoint.isCrit);
+                    Service.getInstance().sendMessAllPlayerInMap(player, msg);
+                    msg.cleanup();
+                } catch (Exception ex) {
+                } finally {
+                    if (msg != null) {
+                        msg.cleanup();
+                    }
+                }
+            }
+        }
+    }
+
+    // Skill Thiên Thạch Trảm (30)
+    public void sendEffSkillSpecialID30(Player player, byte dir, int TypePaintSkill) {
+        Message message = null;
+        try {
+            message = new Message(-45);
+            message.writer().writeByte(20);
+            message.writer().writeInt((int) player.id);
+            message.writer().writeShort(30);
+            message.writer().writeByte(4);
+            message.writer().writeByte(dir);
+            message.writer().writeShort(1800);
+            message.writer().writeByte(0);
+            message.writer().writeByte(TypePaintSkill);
+            message.writer().writeByte(0);
+            Service.getInstance().sendMessAllPlayerInMap(player, message);
+            message.cleanup();
+        } catch (Exception e) {
+        } finally {
+            if (message != null) {
+                message.cleanup();
+                message = null;
+            }
+        }
+    }
+
+    public void startSkillSpecialID30(Player player, int TypePaintSkill) {
+        Message message = null;
+        try {
+            message = new Message(-45);
+            message.writer().writeByte(21);
+            message.writer().writeInt((int) player.id);
+            message.writer().writeShort(30);
+            short targetX = player.skillSpecial.targetX;
+            short targetY = player.skillSpecial.targetY;
+            if (targetX <= 0 || targetY <= 0 || Util.getDistance(player.skillSpecial._xPlayer, player.skillSpecial._yPlayer, targetX, targetY) > 350) {
+                targetX = (short) (player.skillSpecial._xPlayer + ((player.skillSpecial.dir == -1) ? -120 : 120));
+                targetY = player.skillSpecial._yPlayer;
+            }
+            message.writer().writeShort(targetX);
+            message.writer().writeShort(targetY);
+            message.writer().writeShort(4500);
+            message.writer().writeShort(350);
+            message.writer().writeByte(TypePaintSkill);
+            message.writer().writeByte(0);
+            message.writer().writeByte(0);
+            message.writer().writeByte(0);
+            Service.getInstance().sendMessAllPlayerInMap(player, message);
+            message.cleanup();
+        } catch (final Exception ex) {
+        } finally {
+            if (message != null) {
+                message.cleanup();
+                message = null;
+            }
+        }
+    }
+
+    private void dealDamageThienThach(Player player, short strikeX, short strikeY, int range, long dameHit) {
+        if (dameHit <= 0) {
+            dameHit = 1;
+        }
+        if (player == null || player.zone == null || player.skillSpecial == null) {
+            return;
+        }
+
+        if (player.skillSpecial.targetMob == null && player.skillSpecial.targetPlayer == null) {
+            int minMobDist = range;
+            Mob closestMob = null;
+            for (Mob mobMap : player.zone.mobs) {
+                if (mobMap != null && !mobMap.isDie()) {
+                    int dist = Util.getDistance(strikeX, strikeY, mobMap.location.x, mobMap.location.y);
+                    if (dist < minMobDist) {
+                        minMobDist = dist;
+                        closestMob = mobMap;
+                    }
+                }
+            }
+
+            int minPlDist = range;
+            Player closestPl = null;
+            List<Player> targetList = new ArrayList<>(player.zone.getHumanoids());
+            for (Player b : player.zone.getBosses()) {
+                if (b != null && !targetList.contains(b)) {
+                    targetList.add(b);
+                }
+            }
+            for (Player plMap : targetList) {
+                if (plMap != null && plMap != player && !plMap.isDie() && this.canAttackPlayer(player, plMap)) {
+                    int dist = Util.getDistance(strikeX, strikeY, plMap.location.x, plMap.location.y);
+                    if (dist < minPlDist) {
+                        minPlDist = dist;
+                        closestPl = plMap;
+                    }
+                }
+            }
+
+            if (closestPl != null && (closestMob == null || minPlDist <= minMobDist)) {
+                player.skillSpecial.targetPlayer = closestPl;
+            } else if (closestMob != null) {
+                player.skillSpecial.targetMob = closestMob;
+            }
+        }
+
         if (player.skillSpecial.targetMob != null) {
             Mob targetMob = player.skillSpecial.targetMob;
             if (!targetMob.isDie() && targetMob.zone == player.zone) {

@@ -108,6 +108,7 @@ public class PlayerSkill {
             case Skill.SUPER_KAME:
             case Skill.SUPER_ANTOMIC:
             case Skill.LOI_THAN:
+            case Skill.THIEN_THACH:
                 return 9;
             case Skill.BIEN_HINH:
                 return 10;  

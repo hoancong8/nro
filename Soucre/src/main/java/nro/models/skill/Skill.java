@@ -43,6 +43,7 @@ public class Skill {
     public static final byte BIEN_HINH = 27;
     public static final byte PHAN_THAN = 28;
     public static final byte LOI_THAN = 29;
+    public static final byte THIEN_THACH = 30;
 
     public SkillTemplate template;
 
