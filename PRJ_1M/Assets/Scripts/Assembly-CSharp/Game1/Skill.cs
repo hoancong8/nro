@@ -78,13 +78,15 @@ namespace Game1
 			long num = mSystem.currentTimeMillis() - lastTimeUseThisSkill;
 			if (num < coolDown)
 			{
-				g.setColor(2721889, 0.7f);
+				g.setColor(0, 0.65f);
 				if (paintCanNotUseSkill && GameCanvas.gameTick % 6 > 2)
 				{
-					g.setColor(876862);
+					g.setColor(876862, 0.75f);
 				}
 				int num2 = (int)(num * 20 / coolDown);
 				g.fillRect(x - 10, y - 10 + num2, 20, 20 - num2);
+				long remainSec = (coolDown - num) / 1000 + 1;
+				mFont.tahoma_7b_white.drawString(g, remainSec + "s", x, y - 5, mFont.CENTER);
 			}
 			else
 			{

@@ -1710,9 +1710,7 @@ public class SkillService {
         }
         int coolDown = player.playerSkill.skillSelect.coolDown;
         player.playerSkill.skillSelect.lastTimeUseThisSkill = System.currentTimeMillis() - (coolDown * subTimeParam / 100);
-        if (subTimeParam != 0) {
-            Service.getInstance().sendTimeSkill(player);
-        }
+        Service.getInstance().sendTimeSkill(player);
     }
 
     private boolean canHsPlayer(Player player, Player plTarget) {

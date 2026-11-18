@@ -1864,7 +1864,7 @@ namespace Game1
 			if (darkAlpha > 0.02f)
 			{
 				g.setColor(0, darkAlpha);
-				g.fillRect(x - 500, y - 700, 1000, 1000);
+				g.fillRect(GameScr.cmx, GameScr.cmy, GameCanvas.w, GameCanvas.h);
 				g.setColor(16777215, 1f);
 			}
 
@@ -1885,7 +1885,7 @@ namespace Game1
 			if (flashAlpha > 0.02f)
 			{
 				g.setColor(16777215, flashAlpha);
-				g.fillRect(x - 500, y - 700, 1000, 1000);
+				g.fillRect(GameScr.cmx, GameScr.cmy, GameCanvas.w, GameCanvas.h);
 				g.setColor(16777215, 1f);
 			}
 
@@ -2192,7 +2192,7 @@ namespace Game1
 				if (purpleAlpha > 0.02f)
 				{
 					g.setColor(12530172, purpleAlpha);
-					g.fillRect(x - 300, y - 600, 600, 700);
+					g.fillRect(GameScr.cmx, GameScr.cmy, GameCanvas.w, GameCanvas.h);
 					g.setColor(16777215, 1f);
 				}
 			}
@@ -2204,7 +2204,7 @@ namespace Game1
 				if (flashAlpha > 0.02f)
 				{
 					g.setColor(16777215, flashAlpha);
-					g.fillRect(x - 500, y - 700, 1000, 1000);
+					g.fillRect(GameScr.cmx, GameScr.cmy, GameCanvas.w, GameCanvas.h);
 					g.setColor(16777215, 1f);
 				}
 			}

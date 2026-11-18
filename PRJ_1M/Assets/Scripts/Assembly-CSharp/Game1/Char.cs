@@ -7219,8 +7219,69 @@ namespace Game1
 			return true;
 		}
 
+		public Skill getSkillByIdTemplate(int idTemplate)
+		{
+			if (vSkill != null)
+			{
+				for (int i = 0; i < vSkill.size(); i++)
+				{
+					Skill s = (Skill)vSkill.elementAt(i);
+					if (s != null && s.template != null && s.template.id == idTemplate)
+					{
+						return s;
+					}
+				}
+			}
+			if (vSkillFight != null)
+			{
+				for (int i = 0; i < vSkillFight.size(); i++)
+				{
+					Skill s = (Skill)vSkillFight.elementAt(i);
+					if (s != null && s.template != null && s.template.id == idTemplate)
+					{
+						return s;
+					}
+				}
+			}
+			if (GameScr.keySkill != null)
+			{
+				for (int i = 0; i < GameScr.keySkill.Length; i++)
+				{
+					Skill s = GameScr.keySkill[i];
+					if (s != null && s.template != null && s.template.id == idTemplate)
+					{
+						return s;
+					}
+				}
+			}
+			if (GameScr.onScreenSkill != null)
+			{
+				for (int i = 0; i < GameScr.onScreenSkill.Length; i++)
+				{
+					Skill s = GameScr.onScreenSkill[i];
+					if (s != null && s.template != null && s.template.id == idTemplate)
+					{
+						return s;
+					}
+				}
+			}
+			return null;
+		}
+
 		public void sendNewAttack(short idTemplateSkill)
 		{
+			Skill skill = getSkillByIdTemplate(idTemplateSkill);
+			long now = mSystem.currentTimeMillis();
+			if (skill != null)
+			{
+				if (now - skill.lastTimeUseThisSkill < skill.coolDown)
+				{
+					skill.paintCanNotUseSkill = true;
+					GameScr.info1.addInfo(mResources.cooldown + " " + ((skill.coolDown - (now - skill.lastTimeUseThisSkill)) / 1000 + 1) + "s", 0);
+					return;
+				}
+				skill.lastTimeUseThisSkill = now;
+			}
 			short x = -1;
 			short y = -1;
 			int maxRange = (idTemplateSkill == 29 || idTemplateSkill == 30) ? 350 : 280;
@@ -7244,6 +7305,18 @@ namespace Game1
 
 		public void sendNewAttackWithPos(short idTemplateSkill, short targetX, short targetY)
 		{
+			Skill skill = getSkillByIdTemplate(idTemplateSkill);
+			long now = mSystem.currentTimeMillis();
+			if (skill != null)
+			{
+				if (now - skill.lastTimeUseThisSkill < skill.coolDown)
+				{
+					skill.paintCanNotUseSkill = true;
+					GameScr.info1.addInfo(mResources.cooldown + " " + ((skill.coolDown - (now - skill.lastTimeUseThisSkill)) / 1000 + 1) + "s", 0);
+					return;
+				}
+				skill.lastTimeUseThisSkill = now;
+			}
 			sbyte dir = (sbyte)((targetX < cx) ? -1 : 1);
 			cdir = dir;
 			Service.gI().new_skill_not_focus((sbyte)idTemplateSkill, dir, targetX, targetY);
