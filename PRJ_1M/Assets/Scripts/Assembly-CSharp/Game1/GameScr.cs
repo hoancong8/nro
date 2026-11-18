@@ -2377,10 +2377,7 @@ namespace Game1
 			if (isAimingSkill)
 			{
 				updateAimingSkill();
-				if (!isAimingSkill)
-				{
-					return;
-				}
+				return;
 			}
 			if (GameCanvas.isTouch && !ChatTextField.gI().isShow && !GameCanvas.menu.showMenu)
 			{

@@ -397,11 +397,16 @@ public class SkillUtil {
     }
 
     public static void setSkill(Player pl, Skill skill) {
+        boolean exist = false;
         for (int i = 0; i < pl.playerSkill.skills.size(); i++) {
             if (pl.playerSkill.skills.get(i).template.id == skill.template.id) {
                 pl.playerSkill.skills.set(i, skill);
+                exist = true;
                 break;
             }
+        }
+        if (!exist) {
+            pl.playerSkill.skills.add(skill);
         }
     }
 

@@ -7338,18 +7338,30 @@ namespace Game1
 			if (me)
 			{
 				saveLoadPreviousSkill();
-				myskill.lastTimeUseThisSkill = lastTimeUseThisSkill;
-				if (myskill.template.manaUseType == 2)
+				Skill s = getSkillByIdTemplate(idskillPaint);
+				if (s != null)
 				{
-					cMP = 1L;
+					s.lastTimeUseThisSkill = lastTimeUseThisSkill;
+					myskill = s;
 				}
-				else if (myskill.template.manaUseType != 1)
+				else if (myskill != null)
 				{
-					cMP -= myskill.manaUse;
+					myskill.lastTimeUseThisSkill = lastTimeUseThisSkill;
 				}
-				else
+				if (myskill != null)
 				{
-					cMP -= myskill.manaUse * cMPFull / 100;
+					if (myskill.template.manaUseType == 2)
+					{
+						cMP = 1L;
+					}
+					else if (myskill.template.manaUseType != 1)
+					{
+						cMP -= myskill.manaUse;
+					}
+					else
+					{
+						cMP -= myskill.manaUse * cMPFull / 100;
+					}
 				}
 				myCharz().cStamina--;
 				GameScr.gI().isInjureMp = true;

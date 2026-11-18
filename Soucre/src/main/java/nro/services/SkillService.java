@@ -47,16 +47,44 @@ public class SkillService {
 
     public boolean useSkill(Player player, Player plTarget, Mob mobTarget, Message message) {
         try {
-            if (player.playerSkill.skillSelect == null && player.playerSkill == null && player.playerSkill.skillSelect.template == null) {
+            if (player.playerSkill == null) {
+                return false;
+            }
+            if (player.isDie()) {
                 return false;
             }
             if (player.clone != null) {
                 useSkill(player.clone, plTarget, mobTarget, null);
             }
-//            if (player.playerSkill.skillSelect.template.type == 2 && canUseSkillWithMana(player) && canUseSkillWithCooldown(player)) {
-//                useSkillBuffToPlayer(player, plTarget);
-//                return true;
-//            }
+
+            byte st = -1;
+            byte skillId = -1;
+            Short dx = -1;
+            Short dy = -1;
+            byte dir = -1;
+            Short x = -1;
+            Short y = -1;
+
+            if (message != null) {
+                try {
+                    st = message.reader().readByte();
+                    skillId = message.reader().readByte();
+                    dx = message.reader().readShort();
+                    dy = message.reader().readShort();
+                    dir = message.reader().readByte();
+                    x = message.reader().readShort();
+                    y = message.reader().readShort();
+                } catch (Exception ex) {
+                }
+                if (st == 20 && skillId != -1) {
+                    selectSkill(player, skillId);
+                }
+            }
+
+            if (player.playerSkill.skillSelect == null || player.playerSkill.skillSelect.template == null) {
+                return false;
+            }
+
             if ((player.effectSkill.isHaveEffectSkill()
                     && (player.playerSkill.skillSelect.template.id != Skill.TU_SAT
                     && player.playerSkill.skillSelect.template.id != Skill.QUA_CAU_KENH_KHI
@@ -74,28 +102,7 @@ public class SkillService {
             }
             if (player.isPet) {
             }
-            byte st = -1;
-            byte skillId = -1;
-            Short dx = -1;
-            Short dy = -1;
-            byte dir = -1;
-            Short x = -1;
-            Short y = -1;
 
-            try {
-                st = message.reader().readByte();
-                skillId = message.reader().readByte();
-                dx = message.reader().readShort();
-                dy = message.reader().readShort();
-                dir = message.reader().readByte();
-                x = message.reader().readShort();
-                y = message.reader().readShort();
-            } catch (Exception ex) {
-
-            }
-            if (st == 20 && skillId != player.playerSkill.skillSelect.template.id) {
-                selectSkill(player, skillId);
-            }
             switch (player.playerSkill.skillSelect.template.type) {
                 case 1:
                     useSkillAttack(player, plTarget, mobTarget);
@@ -201,7 +208,7 @@ public class SkillService {
                     break;
             }
             player.skillSpecial.setSkillSpecial(dir, dx, dy, x, y);
-            affterUseSkill(player, player.playerSkill.skillSelect.template.id);
+            affterUseSkill(player, skillId != -1 ? skillId : player.playerSkill.skillSelect.template.id);
 
         } catch (Exception ex) {
         }
@@ -1708,9 +1715,15 @@ public class SkillService {
                 subTimeParam = 1;
                 break;
         }
-        int coolDown = player.playerSkill.skillSelect.coolDown;
-        player.playerSkill.skillSelect.lastTimeUseThisSkill = System.currentTimeMillis() - (coolDown * subTimeParam / 100);
-        Service.getInstance().sendTimeSkill(player);
+        Skill skill = player.playerSkill.getSkillbyId(skillId);
+        if (skill == null) {
+            skill = player.playerSkill.skillSelect;
+        }
+        if (skill != null) {
+            int coolDown = skill.coolDown;
+            skill.lastTimeUseThisSkill = System.currentTimeMillis() - (coolDown * subTimeParam / 100);
+            Service.getInstance().sendTimeSkill(player);
+        }
     }
 
     private boolean canHsPlayer(Player player, Player plTarget) {
