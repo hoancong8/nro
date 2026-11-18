@@ -3853,6 +3853,59 @@ namespace Game1
 			return true;
 		}
 
+		public static Image imgAimTargetBlue;
+		public static Image imgAimTargetPurple;
+		public static Image imgAimRangeRing;
+		public static Image imgAimArrowDot;
+
+		public static void loadAimIndicatorImages()
+		{
+			if (imgAimTargetBlue != null)
+			{
+				return;
+			}
+			try
+			{
+				string path = Application.dataPath + "/Resources/skill/";
+				if (System.IO.File.Exists(path + "aim_target_blue.png"))
+				{
+					imgAimTargetBlue = Image.createImage(System.IO.File.ReadAllBytes(path + "aim_target_blue.png"));
+				}
+				else
+				{
+					try { imgAimTargetBlue = Image.createImage("skill/aim_target_blue"); } catch { }
+				}
+				if (System.IO.File.Exists(path + "aim_target_purple.png"))
+				{
+					imgAimTargetPurple = Image.createImage(System.IO.File.ReadAllBytes(path + "aim_target_purple.png"));
+				}
+				else
+				{
+					try { imgAimTargetPurple = Image.createImage("skill/aim_target_purple"); } catch { }
+				}
+				if (System.IO.File.Exists(path + "aim_range_ring.png"))
+				{
+					imgAimRangeRing = Image.createImage(System.IO.File.ReadAllBytes(path + "aim_range_ring.png"));
+				}
+				else
+				{
+					try { imgAimRangeRing = Image.createImage("skill/aim_range_ring"); } catch { }
+				}
+				if (System.IO.File.Exists(path + "aim_arrow_dot.png"))
+				{
+					imgAimArrowDot = Image.createImage(System.IO.File.ReadAllBytes(path + "aim_arrow_dot.png"));
+				}
+				else
+				{
+					try { imgAimArrowDot = Image.createImage("skill/aim_arrow_dot"); } catch { }
+				}
+			}
+			catch (Exception ex)
+			{
+				Cout.LogError("Loi load aim indicator images: " + ex);
+			}
+		}
+
 		public void updateAimingSkill()
 		{
 			if (!isAimingSkill || aimingSkill == null)
@@ -3863,24 +3916,90 @@ namespace Game1
 				return;
 			}
 
-			int rawX = GameCanvas.px + cmx;
-			int rawY = GameCanvas.py + cmy;
 			int myX = Char.myCharz().cx;
 			int myY = Char.myCharz().cy;
-			int d = Res.distance(myX, myY, rawX, rawY);
 			int maxRange = 350;
 
-			if (d > maxRange)
+			// Tính toán vị trí chỉ định mục tiêu (tương tự game mobile)
+			if (skillDrag != null && skillDragStartX > 0)
 			{
-				aimTargetX = myX + (rawX - myX) * maxRange / (d > 0 ? d : 1);
-				aimTargetY = myY + (rawY - myY) * maxRange / (d > 0 ? d : 1);
+				int dragDx = GameCanvas.px - skillDragStartX;
+				int dragDy = GameCanvas.py - skillDragStartY;
+				int dragDist = Res.distance(0, 0, dragDx, dragDy);
+
+				if (dragDist > 15)
+				{
+					// Nếu kéo gần quanh nút skill (dưới 90px): hoạt động như joystick điều hướng chiêu
+					if (dragDist <= 90)
+					{
+						int tOffsetX = (int)((float)dragDx * 4.5f);
+						int tOffsetY = (int)((float)dragDy * 4.5f);
+						int tDist = Res.distance(0, 0, tOffsetX, tOffsetY);
+						if (tDist > maxRange)
+						{
+							tOffsetX = tOffsetX * maxRange / tDist;
+							tOffsetY = tOffsetY * maxRange / tDist;
+						}
+						aimTargetX = myX + tOffsetX;
+						aimTargetY = myY + tOffsetY;
+					}
+					else
+					{
+						// Nếu kéo chuột/ngón tay xa ra trực tiếp trên bản đồ:
+						int rawX = GameCanvas.px + cmx;
+						int rawY = GameCanvas.py + cmy;
+						int d = Res.distance(myX, myY, rawX, rawY);
+						if (d > maxRange)
+						{
+							aimTargetX = myX + (rawX - myX) * maxRange / (d > 0 ? d : 1);
+							aimTargetY = myY + (rawY - myY) * maxRange / (d > 0 ? d : 1);
+						}
+						else
+						{
+							aimTargetX = rawX;
+							aimTargetY = rawY;
+						}
+					}
+				}
+				else
+				{
+					// Chưa kéo xa (vừa mới chạm nút): đặt vị trí mặc định tại mục tiêu đang focus hoặc trước mặt
+					if (Char.myCharz().charFocus != null && !Char.myCharz().charFocus.isDie && Res.distance(myX, myY, Char.myCharz().charFocus.cx, Char.myCharz().charFocus.cy) <= maxRange)
+					{
+						aimTargetX = Char.myCharz().charFocus.cx;
+						aimTargetY = Char.myCharz().charFocus.cy;
+					}
+					else if (Char.myCharz().mobFocus != null && !Char.myCharz().mobFocus.isDie && Res.distance(myX, myY, Char.myCharz().mobFocus.x, Char.myCharz().mobFocus.y) <= maxRange)
+					{
+						aimTargetX = Char.myCharz().mobFocus.x;
+						aimTargetY = Char.myCharz().mobFocus.y;
+					}
+					else
+					{
+						aimTargetX = myX + Char.myCharz().cdir * 120;
+						aimTargetY = myY;
+					}
+				}
 			}
 			else
 			{
-				aimTargetX = rawX;
-				aimTargetY = rawY;
+				// Điều hướng bằng chuột / phím tắt PC:
+				int rawX = GameCanvas.px + cmx;
+				int rawY = GameCanvas.py + cmy;
+				int d = Res.distance(myX, myY, rawX, rawY);
+				if (d > maxRange)
+				{
+					aimTargetX = myX + (rawX - myX) * maxRange / (d > 0 ? d : 1);
+					aimTargetY = myY + (rawY - myY) * maxRange / (d > 0 ? d : 1);
+				}
+				else
+				{
+					aimTargetX = rawX;
+					aimTargetY = rawY;
+				}
 			}
 
+			// Phím hủy (Esc)
 			if (GameCanvas.keyPressed[11] || GameCanvas.keyAsciiPress == 27 || GameCanvas.keyPressed[13])
 			{
 				isAimingSkill = false;
@@ -3890,8 +4009,10 @@ namespace Game1
 				return;
 			}
 
+			// Khi người chơi thả tay hoặc click chuột để xác nhận điểm đặt chiêu
 			if (GameCanvas.isPointerJustRelease || (!GameCanvas.isPointerDown && GameCanvas.isPointerClick))
 			{
+				// Nếu chỉ tap nhẹ tại ô skill không kéo (dragDist <= 15)
 				if (skillDrag != null && Res.distance(skillDragStartX, skillDragStartY, GameCanvas.px, GameCanvas.py) <= 15)
 				{
 					if (Char.myCharz().charFocus != null || Char.myCharz().mobFocus != null)
@@ -3905,6 +4026,7 @@ namespace Game1
 				}
 				else
 				{
+					// Kéo thả đặt vị trí chỉ định
 					Char.myCharz().sendNewAttackWithPos((short)aimingSkill.template.id, (short)aimTargetX, (short)aimTargetY);
 				}
 
@@ -3919,6 +4041,7 @@ namespace Game1
 				return;
 			}
 
+			// Chặn click làm di chuyển nhân vật khi đang ngắm chiêu
 			GameCanvas.isPointerJustDown = false;
 			GameCanvas.isPointerClick = false;
 		}
@@ -3929,80 +4052,55 @@ namespace Game1
 			{
 				return;
 			}
-			int charX = Char.myCharz().cx;
-			int charY = Char.myCharz().cy;
+			loadAimIndicatorImages();
+
+			int myX = Char.myCharz().cx;
+			int myY = Char.myCharz().cy;
 			int tX = aimTargetX;
 			int tY = aimTargetY;
 			int skillId = aimingSkill.template.id;
 
-			int primaryColor = (skillId == 29) ? 0x00E5FF : 0xBF00FF;
-			int ringColor = (skillId == 29) ? 0x80D8FF : 0xEA80FC;
-
-			// 1. Vòng tròn bán kính tầm xa cực đại (R = 350)
-			g.setColor(primaryColor, 0.3f);
-			int maxRange = 350;
-			int segments = 36;
-			for (int i = 0; i < segments; i++)
+			// 1. VÒNG TRÒN PHẠM VI TẦM XA CỰC ĐẠI (Quanh chân nhân vật)
+			if (imgAimRangeRing != null)
 			{
-				double a1 = (double)i * 3.141592653589793 * 2.0 / (double)segments;
-				double a2 = (double)(i + 1) * 3.141592653589793 * 2.0 / (double)segments;
-				int x1 = charX + (int)((double)maxRange * System.Math.Cos(a1));
-				int y1 = charY + (int)((double)maxRange * System.Math.Sin(a1));
-				int x2 = charX + (int)((double)maxRange * System.Math.Cos(a2));
-				int y2 = charY + (int)((double)maxRange * System.Math.Sin(a2));
-				g.drawLine(x1, y1, x2, y2);
+				g.drawImage(imgAimRangeRing, myX, myY, mGraphics.HCENTER | mGraphics.VCENTER);
 			}
 
-			// 2. Đường chỉ hướng từ nhân vật tới tâm ngắm
-			g.setColor(primaryColor, 0.7f);
-			int dist = Res.distance(charX, charY, tX, tY);
-			int step = 16;
-			if (dist > 0)
+			// 2. ĐƯỜNG DẪN / MŨI TÊN CHỈ HƯỚNG TỪ NHÂN VẬT TỚI TÂM CHỈ ĐỊNH
+			int dist = Res.distance(myX, myY, tX, tY);
+			if (dist > 30 && imgAimArrowDot != null)
 			{
-				for (int d = 0; d < dist; d += step)
+				int numDots = dist / 28;
+				if (numDots < 2) numDots = 2;
+				if (numDots > 12) numDots = 12;
+				for (int k = 1; k < numDots; k++)
 				{
-					int x1 = charX + (tX - charX) * d / dist;
-					int y1 = charY + (tY - charY) * d / dist;
-					int dEnd = (d + step / 2 < dist) ? (d + step / 2) : dist;
-					int x2 = charX + (tX - charX) * dEnd / dist;
-					int y2 = charY + (tY - charY) * dEnd / dist;
-					g.drawLine(x1, y1, x2, y2);
+					int dotX = myX + (tX - myX) * k / numDots;
+					int dotY = myY + (tY - myY) * k / numDots;
+					g.drawImage(imgAimArrowDot, dotX, dotY, mGraphics.HCENTER | mGraphics.VCENTER);
 				}
 			}
 
-			// 3. Vòng tròn tâm ngắm (Reticle / AoE indicator)
-			int aoeR = 45;
-			g.setColor(ringColor, 0.85f);
-			int aoeSegments = 24;
-			for (int j = 0; j < aoeSegments; j++)
+			// 3. VÒNG TRÒN VỊ TRÍ CHỈ ĐỊNH (TÂM NGẮM DƯỚI ĐẤT)
+			Image targetImg = (skillId == 29) ? imgAimTargetBlue : imgAimTargetPurple;
+			if (targetImg != null)
 			{
-				double a1 = (double)j * 3.141592653589793 * 2.0 / (double)aoeSegments;
-				double a2 = (double)(j + 1) * 3.141592653589793 * 2.0 / (double)aoeSegments;
-				int x1 = tX + (int)((double)aoeR * System.Math.Cos(a1));
-				int y1 = tY + (int)((double)aoeR * System.Math.Sin(a1));
-				int x2 = tX + (int)((double)aoeR * System.Math.Cos(a2));
-				int y2 = tY + (int)((double)aoeR * System.Math.Sin(a2));
-				g.drawLine(x1, y1, x2, y2);
+				g.drawImage(targetImg, tX, tY, mGraphics.HCENTER | mGraphics.VCENTER);
 			}
 
-			// Crosshair tâm điểm
-			g.setColor(0xFFFFFF, 0.9f);
-			g.drawLine(tX - 10, tY, tX + 10, tY);
-			g.drawLine(tX, tY - 10, tX, tY + 10);
-			g.fillRect(tX - 2, tY - 2, 4, 4);
-
-			// Tên chiêu
+			// Tên chiêu thức phía trên tâm ngắm
 			string skillName = (skillId == 29) ? "Lôi Thần Trảm" : "Ma Pháp Tím";
-			mFont.tahoma_7_white.drawString(g, skillName, tX, tY - aoeR - 12, mFont.CENTER);
+			mFont.tahoma_7_white.drawString(g, skillName, tX, tY - 48, mFont.CENTER);
 
-			// Kiểm tra quái hoặc boss/người chơi lọt vào vùng ngắm
+			// 4. KIỂM TRA MỤC TIÊU LỌT VÀO VÙNG CHỈ ĐỊNH
 			string targetFound = null;
+			int checkRadius = 55;
 			for (int m = 0; m < vMob.size(); m++)
 			{
 				Mob mob = (Mob)vMob.elementAt(m);
 				if (mob != null && mob.status != 0 && mob.status != 1 && mob.hp > 0 && !mob.isMobMe)
 				{
-					if (Res.distance(tX, tY, mob.x, mob.y) <= aoeR + 15)
+					if (Res.distance(tX, tY, mob.x, mob.y) <= checkRadius)
 					{
 						targetFound = mob.getTemplate().name;
 						break;
@@ -4016,7 +4114,7 @@ namespace Game1
 					Char ch = (Char)vCharInMap.elementAt(c);
 					if (ch != null && ch.statusMe != 14 && ch.statusMe != 5 && ch.cHP > 0 && ch != Char.myCharz())
 					{
-						if (Res.distance(tX, tY, ch.cx, ch.cy) <= aoeR + 15)
+						if (Res.distance(tX, tY, ch.cx, ch.cy) <= checkRadius)
 						{
 							targetFound = ch.cName;
 							break;
@@ -4026,7 +4124,7 @@ namespace Game1
 			}
 			if (targetFound != null)
 			{
-				mFont.tahoma_7_green2.drawString(g, "[" + targetFound + "]", tX, tY + aoeR + 3, mFont.CENTER);
+				mFont.tahoma_7b_green2.drawString(g, "[" + targetFound + "]", tX, tY + 44, mFont.CENTER);
 			}
 		}
 
