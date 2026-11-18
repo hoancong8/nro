@@ -77,7 +77,20 @@ public class SkillService {
                 } catch (Exception ex) {
                 }
                 if (st == 20 && skillId != -1) {
-                    selectSkill(player, skillId);
+                    Skill spSkill = player.playerSkill.getSkillbyId(skillId);
+                    if (spSkill != null && canUseSkillWithMana(player, spSkill) && canUseSkillWithCooldown(spSkill)) {
+                        userSkillSpecial(player, st, skillId, dx, dy, dir, x, y);
+                    }
+                    return true;
+                }
+            }
+
+            if (player.playerSkill.skillSelect == null || player.playerSkill.skillSelect.template == null
+                    || (message == null && player.playerSkill.skillSelect.template.type != 1)) {
+                Skill defaultSkill = player.playerSkill.getSkillbyId(player.gender == ConstPlayer.TRAI_DAT
+                        ? Skill.DRAGON : (player.gender == ConstPlayer.NAMEC ? Skill.DEMON : Skill.GALICK));
+                if (defaultSkill != null) {
+                    player.playerSkill.skillSelect = defaultSkill;
                 }
             }
 
@@ -1573,22 +1586,26 @@ public class SkillService {
     }
 
     public boolean canUseSkillWithMana(Player player) {
-        if (player.playerSkill.skillSelect != null) {
-            if (player.playerSkill.skillSelect.template.id == Skill.KAIOKEN) {
+        return canUseSkillWithMana(player, player.playerSkill.skillSelect);
+    }
+
+    public boolean canUseSkillWithMana(Player player, Skill skill) {
+        if (skill != null) {
+            if (skill.template.id == Skill.KAIOKEN) {
                 long hpUse = player.nPoint.hpMax / 100 * 10;
                 if (player.nPoint.hp <= hpUse) {
                     return false;
                 }
             }
-            switch (player.playerSkill.skillSelect.template.manaUseType) {
+            switch (skill.template.manaUseType) {
                 case 0:
-                    if (player.nPoint.mp >= player.playerSkill.skillSelect.manaUse) {
+                    if (player.nPoint.mp >= skill.manaUse) {
                         return true;
                     } else {
                         return false;
                     }
                 case 1:
-                    int mpUse = (int) (player.nPoint.mpMax * player.playerSkill.skillSelect.manaUse / 100);
+                    int mpUse = (int) (player.nPoint.mpMax * skill.manaUse / 100);
                     if (player.nPoint.mp >= mpUse) {
                         return true;
                     } else {
@@ -1609,8 +1626,12 @@ public class SkillService {
     }
 
     public boolean canUseSkillWithCooldown(Player player) {
-        return Util.canDoWithTime(player.playerSkill.skillSelect.lastTimeUseThisSkill,
-                player.playerSkill.skillSelect.coolDown - 50);
+        return canUseSkillWithCooldown(player.playerSkill.skillSelect);
+    }
+
+    public boolean canUseSkillWithCooldown(Skill skill) {
+        if (skill == null) return false;
+        return Util.canDoWithTime(skill.lastTimeUseThisSkill, skill.coolDown - 50);
     }
 
     public void affterUseSkill(Player player, int skillId) {
@@ -1638,20 +1659,24 @@ public class SkillService {
                 break;
 
         }
-        setMpAffterUseSkill(player);
+        setMpAffterUseSkill(player, skillId);
         setLastTimeUseSkill(player, skillId);
     }
 
-    private void setMpAffterUseSkill(Player player) {
-        if (player.playerSkill.skillSelect != null) {
-            switch (player.playerSkill.skillSelect.template.manaUseType) {
+    private void setMpAffterUseSkill(Player player, int skillId) {
+        Skill skill = player.playerSkill.getSkillbyId(skillId);
+        if (skill == null) {
+            skill = player.playerSkill.skillSelect;
+        }
+        if (skill != null) {
+            switch (skill.template.manaUseType) {
                 case 0:
-                    if (player.nPoint.mp >= player.playerSkill.skillSelect.manaUse) {
-                        player.nPoint.setMp(player.nPoint.mp - player.playerSkill.skillSelect.manaUse);
+                    if (player.nPoint.mp >= skill.manaUse) {
+                        player.nPoint.setMp(player.nPoint.mp - skill.manaUse);
                     }
                     break;
                 case 1:
-                    int mpUse = (int) (player.nPoint.mpMax * player.playerSkill.skillSelect.manaUse / 100);
+                    int mpUse = (int) (player.nPoint.mpMax * skill.manaUse / 100);
                     if (player.nPoint.mp >= mpUse) {
                         player.nPoint.setMp(player.nPoint.mp - mpUse);
                     }

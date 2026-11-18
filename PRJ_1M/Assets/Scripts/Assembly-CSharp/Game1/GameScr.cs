@@ -1026,6 +1026,9 @@ namespace Game1
 
 		public override void switchToMe()
 		{
+			isAimingSkill = false;
+			aimingSkill = null;
+			skillDrag = null;
 			if (ModFunc.autoLogin != null)
 			{
 				ModFunc.autoLogin.waitToNextLogin = false;
@@ -4237,7 +4240,6 @@ namespace Game1
 			{
 				return;
 			}
-			Char.myCharz().myskill = skill;
 
 			// KỸ NĂNG ĐỊNH VỊ CHIÊU (29: Lôi Thần Trảm, 30: Thiên Thạch Trảm)
 			if (skill.template.id == 29 || skill.template.id == 30)
@@ -4319,6 +4321,8 @@ namespace Game1
 				aimingSkill = null;
 				skillDrag = null;
 			}
+
+			Char.myCharz().myskill = skill;
 
 			if (lastSkill != skill && lastSkill != null)
 			{

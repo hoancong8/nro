@@ -7342,25 +7342,25 @@ namespace Game1
 				if (s != null)
 				{
 					s.lastTimeUseThisSkill = lastTimeUseThisSkill;
-					myskill = s;
 				}
 				else if (myskill != null)
 				{
 					myskill.lastTimeUseThisSkill = lastTimeUseThisSkill;
 				}
-				if (myskill != null)
+				Skill manaSkill = (s != null) ? s : myskill;
+				if (manaSkill != null)
 				{
-					if (myskill.template.manaUseType == 2)
+					if (manaSkill.template.manaUseType == 2)
 					{
 						cMP = 1L;
 					}
-					else if (myskill.template.manaUseType != 1)
+					else if (manaSkill.template.manaUseType != 1)
 					{
-						cMP -= myskill.manaUse;
+						cMP -= manaSkill.manaUse;
 					}
 					else
 					{
-						cMP -= myskill.manaUse * cMPFull / 100;
+						cMP -= manaSkill.manaUse * cMPFull / 100;
 					}
 				}
 				myCharz().cStamina--;
