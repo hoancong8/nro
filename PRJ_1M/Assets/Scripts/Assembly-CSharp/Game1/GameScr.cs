@@ -2377,7 +2377,6 @@ namespace Game1
 			if (isAimingSkill)
 			{
 				updateAimingSkill();
-				return;
 			}
 			if (GameCanvas.isTouch && !ChatTextField.gI().isShow && !GameCanvas.menu.showMenu)
 			{
@@ -2529,8 +2528,11 @@ namespace Game1
 					info2.doClick(10);
 					GameCanvas.clearKeyPressed();
 				}
-				checkDrag();
-				if (!Char.myCharz().isFlyAndCharge)
+				if (!isAimingSkill)
+				{
+					checkDrag();
+				}
+				if (!Char.myCharz().isFlyAndCharge && !isAimingSkill)
 				{
 					checkClick();
 				}
@@ -3735,6 +3737,10 @@ namespace Game1
 
 		public void doFire(bool isFireByShortCut, bool skipWaypoint)
 		{
+			if (isAimingSkill)
+			{
+				return;
+			}
 			tam++;
 			Waypoint waypoint = Char.myCharz().isInEnterOfflinePoint();
 			Waypoint waypoint2 = Char.myCharz().isInEnterOnlinePoint();
@@ -4068,6 +4074,10 @@ namespace Game1
 					// Click chuột trái vào bản đồ hoặc phím Space để xác nhận điểm đặt chiêu
 					if (GameCanvas.isPointerJustRelease || GameCanvas.isPointerClick || GameCanvas.keyAsciiPress == 32)
 					{
+						if (GameCanvas.keyAsciiPress == 32)
+						{
+							GameCanvas.keyAsciiPress = 0;
+						}
 						Char.myCharz().sendNewAttackWithPos((short)aimingSkill.template.id, (short)aimTargetX, (short)aimTargetY);
 						saveRMSCurrentSkill(aimingSkill.template.id);
 						lastSkill = aimingSkill;
@@ -4082,6 +4092,7 @@ namespace Game1
 				}
 				// Chặn click làm di chuyển nhân vật khi đang ngắm
 				GameCanvas.isPointerJustDown = false;
+				GameCanvas.isPointerClick = false;
 			}
 		}
 
@@ -4300,6 +4311,13 @@ namespace Game1
 				lastSkill = skill;
 				selectedIndexSkill = -1;
 				return;
+			}
+
+			if (isAimingSkill)
+			{
+				isAimingSkill = false;
+				aimingSkill = null;
+				skillDrag = null;
 			}
 
 			if (lastSkill != skill && lastSkill != null)
@@ -4611,7 +4629,7 @@ namespace Game1
 			{
 				updateKeyTouchCapcha();
 			}
-			else if (isHaveSelectSkill)
+			else if (isHaveSelectSkill && !isAimingSkill)
 			{
 				if (isCharging())
 				{
