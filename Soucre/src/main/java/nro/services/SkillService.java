@@ -219,11 +219,11 @@ public class SkillService {
             if (player.skillSpecial.skillSpecial.template.id == Skill.LOI_THAN) {
                 short strikeX = player.skillSpecial.targetX;
                 short strikeY = player.skillSpecial.targetY;
-                if (strikeX <= 0 || strikeY <= 0 || Util.getDistance(player.skillSpecial._xPlayer, player.skillSpecial._yPlayer, strikeX, strikeY) > 280) {
-                    strikeX = (short) (player.skillSpecial._xPlayer + ((player.skillSpecial.dir == -1) ? -90 : 90));
+                if (strikeX <= 0 || strikeY <= 0 || Util.getDistance(player.skillSpecial._xPlayer, player.skillSpecial._yPlayer, strikeX, strikeY) > 350) {
+                    strikeX = (short) (player.skillSpecial._xPlayer + ((player.skillSpecial.dir == -1) ? -100 : 100));
                     strikeY = player.skillSpecial._yPlayer;
                 }
-                int range = 300;
+                int range = 350;
                 int totalDamagePercent = 800 + player.skillSpecial.skillSpecial.point * 150;
                 long baseDame = (long) player.nPoint.getDameAttack(false) * totalDamagePercent / 100;
 
@@ -240,7 +240,7 @@ public class SkillService {
                     player.skillSpecial.lastTimeSkillSpecial = System.currentTimeMillis();
                     player.skillSpecial.stepSkillSpecial = 3;
                     dealDamageLoiThan(player, strikeX, strikeY, range, baseDame * 40 / 100);
-                } else if (player.skillSpecial.stepSkillSpecial == 3 && Util.canDoWithTime(player.skillSpecial.lastTimeSkillSpecial, 1500)) {
+                } else if (player.skillSpecial.stepSkillSpecial == 3 && Util.canDoWithTime(player.skillSpecial.lastTimeSkillSpecial, 600)) {
                     player.skillSpecial.closeSkillSpecial();
                 }
                 return;
@@ -256,15 +256,12 @@ public class SkillService {
                 int totalDamagePercent = 1000 + player.skillSpecial.skillSpecial.point * 200;
                 long baseDame = (long) player.nPoint.getDameAttack(false) * totalDamagePercent / 100;
 
-                if (player.skillSpecial.stepSkillSpecial == 0 && Util.canDoWithTime(player.skillSpecial.lastTimeSkillSpecial, 1800)) {
+                if (player.skillSpecial.stepSkillSpecial == 0 && Util.canDoWithTime(player.skillSpecial.lastTimeSkillSpecial, 1500)) {
                     player.skillSpecial.lastTimeSkillSpecial = System.currentTimeMillis();
                     player.skillSpecial.stepSkillSpecial = 1;
                     this.startSkillSpecialID30(player, 0);
-                } else if (player.skillSpecial.stepSkillSpecial == 1 && Util.canDoWithTime(player.skillSpecial.lastTimeSkillSpecial, 1100)) {
-                    player.skillSpecial.lastTimeSkillSpecial = System.currentTimeMillis();
-                    player.skillSpecial.stepSkillSpecial = 2;
                     dealDamageThienThach(player, strikeX, strikeY, range, baseDame);
-                } else if (player.skillSpecial.stepSkillSpecial == 2 && Util.canDoWithTime(player.skillSpecial.lastTimeSkillSpecial, 2000)) {
+                } else if (player.skillSpecial.stepSkillSpecial == 1 && Util.canDoWithTime(player.skillSpecial.lastTimeSkillSpecial, 600)) {
                     player.skillSpecial.closeSkillSpecial();
                 }
                 return;
@@ -746,14 +743,14 @@ public class SkillService {
             message.writer().writeShort(29);
             short targetX = player.skillSpecial.targetX;
             short targetY = player.skillSpecial.targetY;
-            if (targetX <= 0 || targetY <= 0 || Util.getDistance(player.skillSpecial._xPlayer, player.skillSpecial._yPlayer, targetX, targetY) > 280) {
-                targetX = (short) (player.skillSpecial._xPlayer + ((player.skillSpecial.dir == -1) ? -90 : 90));
+            if (targetX <= 0 || targetY <= 0 || Util.getDistance(player.skillSpecial._xPlayer, player.skillSpecial._yPlayer, targetX, targetY) > 350) {
+                targetX = (short) (player.skillSpecial._xPlayer + ((player.skillSpecial.dir == -1) ? -100 : 100));
                 targetY = player.skillSpecial._yPlayer;
             }
             message.writer().writeShort(targetX);
             message.writer().writeShort(targetY);
-            message.writer().writeShort(3500);
-            message.writer().writeShort(300);
+            message.writer().writeShort(600);
+            message.writer().writeShort(350);
             message.writer().writeByte(TypePaintSkill);
             message.writer().writeByte(0);
             message.writer().writeByte(0);
@@ -891,7 +888,7 @@ public class SkillService {
             }
             message.writer().writeShort(targetX);
             message.writer().writeShort(targetY);
-            message.writer().writeShort(4500);
+            message.writer().writeShort(600);
             message.writer().writeShort(350);
             message.writer().writeByte(TypePaintSkill);
             message.writer().writeByte(0);

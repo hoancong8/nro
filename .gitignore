@@ -36,6 +36,7 @@ PRJ_1M/[Mm]emoryCaptures/
 
 # Logs & temp files
 *.log
+*.txt
 editor_tail.txt
 server_err.log
 server_out.log

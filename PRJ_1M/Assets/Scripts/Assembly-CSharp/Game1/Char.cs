@@ -7223,19 +7223,20 @@ namespace Game1
 		{
 			short x = -1;
 			short y = -1;
-			if (charFocus != null && !charFocus.isPet && !charFocus.isMiniPet && Res.distance(cx, cy, charFocus.cx, charFocus.cy) <= 280)
+			int maxRange = (idTemplateSkill == 29 || idTemplateSkill == 30) ? 350 : 280;
+			if (charFocus != null && !charFocus.isPet && !charFocus.isMiniPet && Res.distance(cx, cy, charFocus.cx, charFocus.cy) <= maxRange)
 			{
 				x = (short)charFocus.cx;
-				y = (short)((charFocus.ySd > 0) ? charFocus.ySd : charFocus.cy);
+				y = (short)charFocus.cy;
 			}
-			else if (mobFocus != null && Res.distance(cx, cy, mobFocus.x, mobFocus.y) <= 280)
+			else if (mobFocus != null && Res.distance(cx, cy, mobFocus.x, mobFocus.y) <= maxRange)
 			{
 				x = (short)mobFocus.x;
-				y = (short)((mobFocus.ySd > 0) ? mobFocus.ySd : (mobFocus.y + 15));
+				y = (short)mobFocus.y;
 			}
 			else
 			{
-				x = (short)(cx + cdir * 90);
+				x = (short)(cx + cdir * 100);
 				y = (short)cy;
 			}
 			Service.gI().new_skill_not_focus((sbyte)idTemplateSkill, (sbyte)cdir, x, y);
@@ -7375,7 +7376,14 @@ namespace Game1
 			count_NEW = 0;
 			this.targetDame = targetDame;
 			this.typePaint = typePaint;
-			this.timeDame = mSystem.currentTimeMillis() + timeDame;
+			if (this.idskillPaint == 29 || this.idskillPaint == 30)
+			{
+				this.timeDame = mSystem.currentTimeMillis() + 600;
+			}
+			else
+			{
+				this.timeDame = mSystem.currentTimeMillis() + timeDame;
+			}
 			this.rangeDame = rangeDame;
 			this.typeItem = typeItem;
 			if (this.stt == 1)
@@ -7398,19 +7406,19 @@ namespace Game1
 				if (this.idskillPaint == 29)
 				{
 					Point strikeTarget = targetDame;
-					if (strikeTarget == null || strikeTarget.x <= 0 || Res.distance(cx, cy, strikeTarget.x, strikeTarget.y) > 280)
+					if (strikeTarget == null || strikeTarget.x <= 0 || Res.distance(cx, cy, strikeTarget.x, strikeTarget.y) > 350)
 					{
-						if (charFocus != null && !charFocus.isPet && !charFocus.isMiniPet && Res.distance(cx, cy, charFocus.cx, charFocus.cy) <= 280)
+						if (charFocus != null && !charFocus.isPet && !charFocus.isMiniPet && Res.distance(cx, cy, charFocus.cx, charFocus.cy) <= 350)
 						{
-							strikeTarget = new Point { x = charFocus.cx, y = ((charFocus.ySd > 0) ? charFocus.ySd : charFocus.cy) };
+							strikeTarget = new Point { x = charFocus.cx, y = charFocus.cy };
 						}
-						else if (mobFocus != null && Res.distance(cx, cy, mobFocus.x, mobFocus.y) <= 280)
+						else if (mobFocus != null && Res.distance(cx, cy, mobFocus.x, mobFocus.y) <= 350)
 						{
-							strikeTarget = new Point { x = mobFocus.x, y = ((mobFocus.ySd > 0) ? mobFocus.ySd : (mobFocus.y + 15)) };
+							strikeTarget = new Point { x = mobFocus.x, y = mobFocus.y };
 						}
 						else
 						{
-							strikeTarget = new Point { x = cx + ((cdir == -1) ? -90 : 90), y = cy };
+							strikeTarget = new Point { x = cx + ((cdir == -1) ? -100 : 100), y = cy };
 						}
 					}
 					GameScr.shock_scr = 15;
@@ -7424,15 +7432,15 @@ namespace Game1
 					{
 						if (charFocus != null && !charFocus.isPet && !charFocus.isMiniPet && Res.distance(cx, cy, charFocus.cx, charFocus.cy) <= 350)
 						{
-							strikeTarget = new Point { x = charFocus.cx, y = ((charFocus.ySd > 0 && Math.abs(charFocus.ySd - charFocus.cy) <= 40) ? charFocus.ySd : (charFocus.cy + 10)) };
+							strikeTarget = new Point { x = charFocus.cx, y = charFocus.cy };
 						}
 						else if (mobFocus != null && Res.distance(cx, cy, mobFocus.x, mobFocus.y) <= 350)
 						{
-							strikeTarget = new Point { x = mobFocus.x, y = ((mobFocus.ySd > 0 && Math.abs(mobFocus.ySd - mobFocus.y) <= 40) ? mobFocus.ySd : (mobFocus.y + 15)) };
+							strikeTarget = new Point { x = mobFocus.x, y = mobFocus.y };
 						}
 						else
 						{
-							strikeTarget = new Point { x = cx + ((cdir == -1) ? -120 : 120), y = ((ySd > 0 && Math.abs(ySd - cy) <= 40) ? ySd : (cy + 10)) };
+							strikeTarget = new Point { x = cx + ((cdir == -1) ? -120 : 120), y = cy };
 						}
 					}
 					GameScr.shock_scr = 10;

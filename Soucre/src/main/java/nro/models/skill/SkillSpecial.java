@@ -77,7 +77,7 @@ public class SkillSpecial {
         this.targetMob = null;
         this.targetPlayer = null;
         if (targetX > 0 && targetY > 0 && this.player != null && this.player.zone != null) {
-            int minMobDist = 250;
+            int minMobDist = 350;
             Mob closestMob = null;
             for (Mob m : this.player.zone.mobs) {
                 if (m != null && !m.isDie()) {
@@ -89,7 +89,7 @@ public class SkillSpecial {
                 }
             }
 
-            int minPlDist = 250;
+            int minPlDist = 350;
             Player closestPl = null;
             List<Player> targetList = new ArrayList<>(this.player.zone.getHumanoids());
             for (Player b : this.player.zone.getBosses()) {

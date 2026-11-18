@@ -1670,6 +1670,8 @@ namespace Game1
 		public static Image imgLoiThan;
 		public static Image imgStormCloud;
 		public static Image imgStormCloudSmall;
+		private int cloudFixX;
+		private int cloudFixY;
 
 		private void set_Skill_LoiThan()
 		{
@@ -1679,22 +1681,25 @@ namespace Game1
 			// Kiểm tra tọa độ mục tiêu hợp lệ, nếu không có mục tiêu hoặc quá xa thì đánh trước mặt
 			if (charUse != null)
 			{
-				if (charUse.mobFocus != null && !charUse.mobFocus.isDie && Res.distance(charUse.cx, charUse.cy, charUse.mobFocus.x, charUse.mobFocus.y) <= 280)
+				if (charUse.mobFocus != null && !charUse.mobFocus.isDie && Res.distance(charUse.cx, charUse.cy, charUse.mobFocus.x, charUse.mobFocus.y) <= 350)
 				{
 					x = charUse.mobFocus.x;
-					y = (charUse.mobFocus.ySd > 0) ? charUse.mobFocus.ySd : (charUse.mobFocus.y + 15);
+					y = charUse.mobFocus.y;
 				}
-				else if (charUse.charFocus != null && !charUse.charFocus.isDie && Res.distance(charUse.cx, charUse.cy, charUse.charFocus.cx, charUse.charFocus.cy) <= 280)
+				else if (charUse.charFocus != null && !charUse.charFocus.isDie && Res.distance(charUse.cx, charUse.cy, charUse.charFocus.cx, charUse.charFocus.cy) <= 350)
 				{
 					x = charUse.charFocus.cx;
 					y = charUse.charFocus.cy;
 				}
-				else if (Res.distance(charUse.cx, charUse.cy, x, y) > 280 || x <= 0)
+				else if (Res.distance(charUse.cx, charUse.cy, x, y) > 350 || x <= 0)
 				{
-					x = charUse.cx + charUse.cdir * 90;
+					x = charUse.cx + charUse.cdir * 100;
 					y = charUse.cy;
 				}
 			}
+
+			cloudFixX = x;
+			cloudFixY = y - 225;
 
 			if (imgLoiThan == null || imgLoiThan.texture == null)
 			{
@@ -1765,12 +1770,12 @@ namespace Game1
 			// Khóa theo đối tượng nếu đối tượng di chuyển nhẹ
 			if (charUse != null)
 			{
-				if (charUse.mobFocus != null && !charUse.mobFocus.isDie && Res.distance(charUse.cx, charUse.cy, charUse.mobFocus.x, charUse.mobFocus.y) <= 280)
+				if (charUse.mobFocus != null && !charUse.mobFocus.isDie && Res.distance(charUse.cx, charUse.cy, charUse.mobFocus.x, charUse.mobFocus.y) <= 350)
 				{
 					x = charUse.mobFocus.x;
-					y = (charUse.mobFocus.ySd > 0) ? charUse.mobFocus.ySd : (charUse.mobFocus.y + 15);
+					y = charUse.mobFocus.y;
 				}
-				else if (charUse.charFocus != null && !charUse.charFocus.isDie && Res.distance(charUse.cx, charUse.cy, charUse.charFocus.cx, charUse.charFocus.cy) <= 280)
+				else if (charUse.charFocus != null && !charUse.charFocus.isDie && Res.distance(charUse.cx, charUse.cy, charUse.charFocus.cx, charUse.charFocus.cy) <= 350)
 				{
 					x = charUse.charFocus.cx;
 					y = charUse.charFocus.cy;
@@ -1868,11 +1873,11 @@ namespace Game1
 			}
 			else if (f >= 45 && f <= 49)
 			{
-				flashAlpha = 0.48f - (float)(f - 45) * 0.1f;
+				flashAlpha = 0.5f - (float)(f - 45) * 0.09f;
 			}
-			else if (f >= 75 && f <= 81)
+			else if (f >= 75 && f <= 80)
 			{
-				flashAlpha = 0.6f - (float)(f - 75) * 0.09f;
+				flashAlpha = 0.65f - (float)(f - 75) * 0.1f;
 			}
 			if (flashAlpha > 0.02f)
 			{
@@ -1881,30 +1886,31 @@ namespace Game1
 				g.setColor(16777215, 1f);
 			}
 
-			// 3. TÍNH TOÁN VỊ TRÍ MÂY ĐEN
-			int cloudY = y - 235;
+			// 3. VỊ TRÍ MÂY ĐEN CỐ ĐỊNH TRÊN TRỜI
+			int cloudY = (cloudFixY != 0) ? cloudFixY : (y - 225);
+			int baseCloudX = (cloudFixX != 0) ? cloudFixX : x;
 			int cloudX1, cloudX2, cloudX3;
 			if (f <= 15)
 			{
 				float progress = (float)f / 15f;
 				float ease = progress * (2f - progress);
-				cloudX1 = (int)((float)(x - 280) + 245f * ease);
-				cloudX2 = (int)((float)(x + 280) - 245f * ease);
-				cloudX3 = x;
+				cloudX1 = (int)((float)(baseCloudX - 280) + 245f * ease);
+				cloudX2 = (int)((float)(baseCloudX + 280) - 245f * ease);
+				cloudX3 = baseCloudX;
 			}
 			else if (f <= 105)
 			{
 				int wobble = (f % 6 < 3) ? 1 : -1;
-				cloudX1 = x - 35 + wobble;
-				cloudX2 = x + 35 - wobble;
-				cloudX3 = x;
+				cloudX1 = baseCloudX - 35 + wobble;
+				cloudX2 = baseCloudX + 35 - wobble;
+				cloudX3 = baseCloudX;
 			}
 			else
 			{
 				float fade = (float)(f - 105) / 20f;
-				cloudX1 = (int)((float)(x - 35) - 100f * fade);
-				cloudX2 = (int)((float)(x + 35) + 100f * fade);
-				cloudX3 = x;
+				cloudX1 = (int)((float)(baseCloudX - 35) - 100f * fade);
+				cloudX2 = (int)((float)(baseCloudX + 35) + 100f * fade);
+				cloudX3 = baseCloudX;
 			}
 
 			// 4. VẼ TẦNG MÂY ĐEN PHÍA SAU
@@ -1930,36 +1936,53 @@ namespace Game1
 			if (isSpark)
 			{
 				g.setColor(12648447, 0.35f);
-				g.fillRect(x - 130, cloudY - 40, 260, 80);
+				g.fillRect(baseCloudX - 130, cloudY - 40, 260, 80);
 				g.setColor(16777215, 1f);
 			}
 
-			// 5. VẼ CÁC ĐỢT SÉT LÔI THẦN (SỬ DỤNG G.DRAWREGION CHUẨN, VẼ CHẬP ĐA TẦNG ĐỂ SÉT TO VÀ DÀY)
+			// 5. VẼ CÁC ĐỢT SÉT LÔI THẦN (KÉO DÀI TỪ MÂY CỐ ĐỊNH XUỐNG ĐỐI TƯỢNG TRÊN KHÔNG HOẶC DƯỚI ĐẤT)
 			if (imgLoiThan != null && imgLoiThan.texture != null)
 			{
-				// --- ĐỢT 1 (Frame 15 - 40): Cột sét tiên phong (vẽ chập 3 lớp để sét to dày) ---
+				int drawY = y - pivotY;
+
+				// --- ĐỢT 1 (Frame 15 - 40): Cột sét tiên phong ---
 				if (f >= 15 && f <= 40)
 				{
 					int f1 = 16 + (f - 15);
 					if (f1 > 40) f1 = 40;
 					int col1 = f1 % 11;
 					int row1 = f1 / 11;
-					g.drawRegion(imgLoiThan, col1 * wGame, row1 * hGame, wGame, hGame, 0, x - pivotX - 4, y - pivotY, 0);
-					g.drawRegion(imgLoiThan, col1 * wGame, row1 * hGame, wGame, hGame, 0, x - pivotX + 4, y - pivotY, 0);
-					g.drawRegion(imgLoiThan, col1 * wGame, row1 * hGame, wGame, hGame, 0, x - pivotX, y - pivotY, 0);
+
+					if (drawY > cloudY)
+					{
+						int connH = drawY - cloudY + 20;
+						if (connH > hGame) connH = hGame;
+						g.drawRegion(imgLoiThan, col1 * wGame, row1 * hGame, wGame, connH, 0, x - pivotX, cloudY, 0);
+					}
+					g.drawRegion(imgLoiThan, col1 * wGame, row1 * hGame, wGame, hGame, 0, x - pivotX - 4, drawY, 0);
+					g.drawRegion(imgLoiThan, col1 * wGame, row1 * hGame, wGame, hGame, 0, x - pivotX + 4, drawY, 0);
+					g.drawRegion(imgLoiThan, col1 * wGame, row1 * hGame, wGame, hGame, 0, x - pivotX, drawY, 0);
 				}
 
-				// --- ĐỢT 2 (Frame 45 - 72): Song lôi giáng kép 2 bên (mỗi cột vẽ dày 2 lớp) ---
+				// --- ĐỢT 2 (Frame 45 - 72): Song lôi giáng kép 2 bên ---
 				if (f >= 45 && f <= 72)
 				{
 					int f2 = 16 + (f - 45);
 					if (f2 > 42) f2 = 42;
 					int col2 = f2 % 11;
 					int row2 = f2 / 11;
-					g.drawRegion(imgLoiThan, col2 * wGame, row2 * hGame, wGame, hGame, 0, x - 28 - pivotX, y - pivotY, 0);
-					g.drawRegion(imgLoiThan, col2 * wGame, row2 * hGame, wGame, hGame, 0, x - 24 - pivotX, y - pivotY, 0);
-					g.drawRegion(imgLoiThan, col2 * wGame, row2 * hGame, wGame, hGame, 2, x + 28 - pivotX, y - pivotY, 0);
-					g.drawRegion(imgLoiThan, col2 * wGame, row2 * hGame, wGame, hGame, 2, x + 24 - pivotX, y - pivotY, 0);
+
+					if (drawY > cloudY)
+					{
+						int connH = drawY - cloudY + 20;
+						if (connH > hGame) connH = hGame;
+						g.drawRegion(imgLoiThan, col2 * wGame, row2 * hGame, wGame, connH, 0, x - 26 - pivotX, cloudY, 0);
+						g.drawRegion(imgLoiThan, col2 * wGame, row2 * hGame, wGame, connH, 2, x + 26 - pivotX, cloudY, 0);
+					}
+					g.drawRegion(imgLoiThan, col2 * wGame, row2 * hGame, wGame, hGame, 0, x - 28 - pivotX, drawY, 0);
+					g.drawRegion(imgLoiThan, col2 * wGame, row2 * hGame, wGame, hGame, 0, x - 24 - pivotX, drawY, 0);
+					g.drawRegion(imgLoiThan, col2 * wGame, row2 * hGame, wGame, hGame, 2, x + 28 - pivotX, drawY, 0);
+					g.drawRegion(imgLoiThan, col2 * wGame, row2 * hGame, wGame, hGame, 2, x + 24 - pivotX, drawY, 0);
 				}
 
 				// --- ĐỢT 3 (Frame 75 - 105): THIÊN LÔI DIỆT THẾ - CỘT SÉT SIÊU TO KHỔNG LỒ ---
@@ -1970,31 +1993,36 @@ namespace Game1
 					int col3 = f3 % 11;
 					int row3 = f3 / 11;
 
+					if (drawY > cloudY)
+					{
+						int connH = drawY - cloudY + 20;
+						if (connH > hGame) connH = hGame;
+						g.drawRegion(imgLoiThan, col3 * wGame, row3 * hGame, wGame, connH, 0, x - pivotX, cloudY, 0);
+					}
 					// Cột chính giữa SIÊU DÀY SIÊU TO (5 lớp chập đan xen)
-					g.drawRegion(imgLoiThan, col3 * wGame, row3 * hGame, wGame, hGame, 0, x - pivotX - 8, y - pivotY, 0);
-					g.drawRegion(imgLoiThan, col3 * wGame, row3 * hGame, wGame, hGame, 0, x - pivotX + 8, y - pivotY, 0);
-					g.drawRegion(imgLoiThan, col3 * wGame, row3 * hGame, wGame, hGame, 0, x - pivotX - 4, y - pivotY, 0);
-					g.drawRegion(imgLoiThan, col3 * wGame, row3 * hGame, wGame, hGame, 0, x - pivotX + 4, y - pivotY, 0);
-					g.drawRegion(imgLoiThan, col3 * wGame, row3 * hGame, wGame, hGame, 0, x - pivotX, y - pivotY, 0);
+					g.drawRegion(imgLoiThan, col3 * wGame, row3 * hGame, wGame, hGame, 0, x - pivotX - 8, drawY, 0);
+					g.drawRegion(imgLoiThan, col3 * wGame, row3 * hGame, wGame, hGame, 0, x - pivotX + 8, drawY, 0);
+					g.drawRegion(imgLoiThan, col3 * wGame, row3 * hGame, wGame, hGame, 0, x - pivotX - 4, drawY, 0);
+					g.drawRegion(imgLoiThan, col3 * wGame, row3 * hGame, wGame, hGame, 0, x - pivotX + 4, drawY, 0);
+					g.drawRegion(imgLoiThan, col3 * wGame, row3 * hGame, wGame, hGame, 0, x - pivotX, drawY, 0);
 
 					// Hai luồng sét phụ bổ trợ 2 bên
 					int fSub = (f3 > 18) ? (f3 - 2) : f3;
 					int colSub = fSub % 11;
 					int rowSub = fSub / 11;
-					g.drawRegion(imgLoiThan, colSub * wGame, rowSub * hGame, wGame, hGame, 0, x - 38 - pivotX, y - pivotY, 0);
-					g.drawRegion(imgLoiThan, colSub * wGame, rowSub * hGame, wGame, hGame, 2, x + 38 - pivotX, y - pivotY, 0);
+					g.drawRegion(imgLoiThan, colSub * wGame, rowSub * hGame, wGame, hGame, 0, x - 38 - pivotX, drawY, 0);
+					g.drawRegion(imgLoiThan, colSub * wGame, rowSub * hGame, wGame, hGame, 2, x + 38 - pivotX, drawY, 0);
 				}
 			}
 
 			// 6. TẦNG MÂY CUỘN MẶT TRƯỚC (Ôm lấy gốc sét trên trời)
 			if (imgStormCloudSmall != null && imgStormCloudSmall.texture != null && f >= 12 && f <= 110)
 			{
-				g.drawRegion(imgStormCloudSmall, 0, 0, csW, csH, 0, x, cloudY + 15, mGraphics.VCENTER | mGraphics.HCENTER);
+				g.drawRegion(imgStormCloudSmall, 0, 0, csW, csH, 0, baseCloudX, cloudY + 15, mGraphics.VCENTER | mGraphics.HCENTER);
 			}
 		}
 
-				public static Image imgMagicCircle;
-		public static Image imgMeteor;
+		public static Image imgMagicCircle;
 
 		private void set_Skill_MagicCircle()
 		{
@@ -2003,7 +2031,7 @@ namespace Game1
 			if (charUse != null)
 			{
 				x = charUse.cx;
-				y = (charUse.ySd > 0 && Math.abs(charUse.ySd - charUse.cy) <= 40) ? charUse.ySd : (charUse.cy + 10);
+				y = charUse.cy;
 			}
 			if (imgMagicCircle == null || imgMagicCircle.texture == null)
 			{
@@ -2032,7 +2060,7 @@ namespace Game1
 			if (charUse != null)
 			{
 				x = charUse.cx;
-				y = (charUse.ySd > 0 && Math.abs(charUse.ySd - charUse.cy) <= 40) ? charUse.ySd : (charUse.cy + 10);
+				y = charUse.cy;
 			}
 			if (f == 2)
 			{
@@ -2066,23 +2094,23 @@ namespace Game1
 		private void set_Skill_Meteor()
 		{
 			f = 0;
-			fRemove = 165;
+			fRemove = 118;
 			if (charUse != null)
 			{
 				if (charUse.charFocus != null && !charUse.charFocus.isDie && Res.distance(charUse.cx, charUse.cy, charUse.charFocus.cx, charUse.charFocus.cy) <= 350)
 				{
 					x = charUse.charFocus.cx;
-					y = (charUse.charFocus.ySd > 0 && Math.abs(charUse.charFocus.ySd - charUse.charFocus.cy) <= 40) ? charUse.charFocus.ySd : (charUse.charFocus.cy + 10);
+					y = charUse.charFocus.cy;
 				}
 				else if (charUse.mobFocus != null && !charUse.mobFocus.isDie && Res.distance(charUse.cx, charUse.cy, charUse.mobFocus.x, charUse.mobFocus.y) <= 350)
 				{
 					x = charUse.mobFocus.x;
-					y = (charUse.mobFocus.ySd > 0 && Math.abs(charUse.mobFocus.ySd - charUse.mobFocus.y) <= 40) ? charUse.mobFocus.ySd : (charUse.mobFocus.y + 15);
+					y = charUse.mobFocus.y;
 				}
 				else if (Res.distance(charUse.cx, charUse.cy, x, y) > 350 || x <= 0)
 				{
 					x = charUse.cx + charUse.cdir * 120;
-					y = (charUse.ySd > 0 && Math.abs(charUse.ySd - charUse.cy) <= 40) ? charUse.ySd : (charUse.cy + 10);
+					y = charUse.cy;
 				}
 			}
 
@@ -2106,43 +2134,21 @@ namespace Game1
 					Cout.LogError("Loi load imgMagicCircle: " + ex);
 				}
 			}
-
-			if (imgMeteor == null || imgMeteor.texture == null)
-			{
-				try
-				{
-					string text = Application.dataPath + "/Resources/skill/meteor.png";
-					if (System.IO.File.Exists(text))
-					{
-						byte[] imageData = System.IO.File.ReadAllBytes(text);
-						imgMeteor = Image.createImage(imageData);
-					}
-					else
-					{
-						imgMeteor = Image.createImage("skill/meteor");
-					}
-				}
-				catch (Exception ex)
-				{
-					Cout.LogError("Loi load imgMeteor: " + ex);
-				}
-			}
 		}
 
 		private void upd_Skill_Meteor()
 		{
-			// Trước khi va chạm (f < 38), có thể bám sát theo quái/boss nếu mục tiêu di chuyển nhẹ
-			if (f < 38 && charUse != null)
+			if (charUse != null)
 			{
 				if (charUse.charFocus != null && !charUse.charFocus.isDie && Res.distance(charUse.cx, charUse.cy, charUse.charFocus.cx, charUse.charFocus.cy) <= 350)
 				{
 					x = charUse.charFocus.cx;
-					y = (charUse.charFocus.ySd > 0 && Math.abs(charUse.charFocus.ySd - charUse.charFocus.cy) <= 40) ? charUse.charFocus.ySd : (charUse.charFocus.cy + 10);
+					y = charUse.charFocus.cy;
 				}
 				else if (charUse.mobFocus != null && !charUse.mobFocus.isDie && Res.distance(charUse.cx, charUse.cy, charUse.mobFocus.x, charUse.mobFocus.y) <= 350)
 				{
 					x = charUse.mobFocus.x;
-					y = (charUse.mobFocus.ySd > 0 && Math.abs(charUse.mobFocus.ySd - charUse.mobFocus.y) <= 40) ? charUse.mobFocus.ySd : (charUse.mobFocus.y + 15);
+					y = charUse.mobFocus.y;
 				}
 			}
 
@@ -2152,34 +2158,24 @@ namespace Game1
 				SoundMn.playSound(x, y, SoundMn.NAMEK_CHARGE, SoundMn.volume);
 			}
 
-			// Giai đoạn 2: Cột sáng tím phóng vút lên trời khóa chặt quái + Thiên thạch bắt đầu lao xuống
+			// Giai đoạn 2: Cột sáng tím bùng lên đánh thẳng lên trời
 			if (f == 18)
 			{
 				SoundMn.playSound(x, y, SoundMn.NAMEK_LAZER, SoundMn.volume);
-				SoundMn.playSound(x, y - 200, SoundMn.KAMEX10_1, SoundMn.volume);
-				GameScr.shock_scr = 6;
-			}
-
-			// Giai đoạn 3: Thiên thạch lửa đâm trúng quái ngay tại tâm cột sáng tím nổ tung cực đại!
-			if (f == 38)
-			{
-				GameScr.shock_scr = 35;
-				SoundMn.playSound(x, y, SoundMn.BIG_EXPLODE, SoundMn.volume);
-				SoundMn.playSound(x, y, SoundMn.EXPLODE_2, SoundMn.volume);
 				SoundMn.playSound(x, y, SoundMn.KAMEX10_1, SoundMn.volume);
-				GameScr.addEffectEnd(10, 0, 0, x, y, 1, 0, 45, null);
-				GameScr.addEffectEnd(11, 0, 0, x - 35, y, 1, 0, 40, null);
-				GameScr.addEffectEnd(11, 0, 0, x + 35, y, 1, 0, 40, null);
+				GameScr.shock_scr = 18;
+				GameScr.addEffectEnd(10, 0, 0, x, y, 1, 0, 30, null);
 			}
-			if (f == 48)
-			{
-				GameScr.shock_scr = 15;
-			}
-			if (f == 60)
+			if (f == 26)
 			{
 				GameScr.shock_scr = 8;
 			}
-			if (f >= 165)
+			if (f == 40)
+			{
+				GameScr.shock_scr = 4;
+			}
+
+			if (f >= 118)
 			{
 				removeEff();
 			}
@@ -2189,17 +2185,17 @@ namespace Game1
 		{
 			int zl = mGraphics.zoomLevel > 0 ? mGraphics.zoomLevel : 1;
 
-			// 1. Ánh sáng tím bao quanh mục tiêu khi cột sáng bùng lên
-			if (f >= 18 && f <= 75)
+			// 1. Ánh sáng tím bao quanh mục tiêu khi cột sáng bùng lên (f: 18 -> 70)
+			if (f >= 18 && f <= 70)
 			{
 				float purpleAlpha = 0.35f;
-				if (f <= 30)
+				if (f <= 28)
 				{
-					purpleAlpha = (float)(f - 18) / 12f * 0.35f;
+					purpleAlpha = (float)(f - 18) / 10f * 0.35f;
 				}
-				else if (f > 55)
+				else if (f > 50)
 				{
-					purpleAlpha = (1f - (float)(f - 55) / 20f) * 0.35f;
+					purpleAlpha = (1f - (float)(f - 50) / 20f) * 0.35f;
 				}
 				if (purpleAlpha > 0.02f)
 				{
@@ -2209,10 +2205,10 @@ namespace Game1
 				}
 			}
 
-			// 2. Chớp sáng màn hình khi thiên thạch chạm mục tiêu (f: 38 -> 45)
-			if (f >= 38 && f <= 45)
+			// 2. Chớp sáng nhẹ toàn màn hình khi cột năng lượng bùng phát (f: 18 -> 22)
+			if (f >= 18 && f <= 22)
 			{
-				float flashAlpha = 0.65f - (float)(f - 38) * 0.09f;
+				float flashAlpha = 0.35f - (float)(f - 18) * 0.07f;
 				if (flashAlpha > 0.02f)
 				{
 					g.setColor(16777215, flashAlpha);
@@ -2221,7 +2217,7 @@ namespace Game1
 				}
 			}
 
-			// 3. VẼ VÒNG MA THUẬT VÀ CỘT SÁNG TÍM TẤN CÔNG QUÁI (MAGIC CIRCLE CAST)
+			// 3. VẼ VÒNG MA THUẬT VÀ CỘT SÁNG TÍM TẤN CÔNG ĐÚNG DƯỚI CHÂN ĐỐI TƯỢNG (MAGIC CIRCLE CAST)
 			if (imgMagicCircle != null && imgMagicCircle.texture != null && f < 118)
 			{
 				int wGameC = 200 / zl;
@@ -2231,19 +2227,6 @@ namespace Game1
 				int colC = f % 12;
 				int rowC = f / 12;
 				g.drawRegion(imgMagicCircle, colC * wGameC, rowC * hGameC, wGameC, hGameC, 0, x - pivotXC, y - pivotYC, 0);
-			}
-
-			// 4. VẼ KHỐI THIÊN THẠCH LỬA LAO XUỐNG VÀ PHÁT NỔ TẠI MỤC TIÊU (METEOR)
-			int fMeteor = f - 19;
-			if (imgMeteor != null && imgMeteor.texture != null && fMeteor >= 0 && fMeteor < 151)
-			{
-				int wGameM = 272 / zl;
-				int hGameM = 232 / zl;
-				int pivotXM = 150 / zl;
-				int pivotYM = 208 / zl;
-				int colM = fMeteor % 12;
-				int rowM = fMeteor / 12;
-				g.drawRegion(imgMeteor, colM * wGameM, rowM * hGameM, wGameM, hGameM, 0, x - pivotXM, y - pivotYM, 0);
 			}
 		}
 	}
