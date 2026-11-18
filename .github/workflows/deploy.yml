@@ -1,0 +1,70 @@
+name: Build and Auto Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Soucre/**'
+      - '_Login/**'
+      - '.github/workflows/deploy.yml'
+      - 'run_vps.sh'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Game & Login Server JARs
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'maven'
+
+      - name: Build Game Server (Soucre)
+        run: |
+          cd Soucre
+          mvn clean package -DskipTests
+
+      - name: Build Login Server (_Login)
+        run: |
+          cd _Login
+          mvn clean package -DskipTests
+
+  deploy:
+    name: Deploy to VPS via SSH
+    needs: build
+    runs-on: ubuntu-latest
+    if: ${{ secrets.VPS_HOST != '' }}
+
+    steps:
+      - name: Trigger Update and Restart on VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          script: |
+            set -e
+            APP_DIR="${{ secrets.VPS_PATH || '/home/nro' }}"
+            echo ">>> Dang cap nhat Server tai: $APP_DIR"
+            
+            if [ -d "$APP_DIR/.git" ]; then
+              cd "$APP_DIR"
+              git fetch origin main
+              git reset --hard origin/main
+              chmod +x run_vps.sh stop_vps.sh || true
+              ./run_vps.sh
+            else
+              echo "Loi: Khong tim thay thu muc git tai $APP_DIR. Vui long clone repo truoc!"
+              exit 1
+            fi
+            echo ">>> Deploy thanh cong!"
