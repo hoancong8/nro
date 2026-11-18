@@ -1678,23 +1678,26 @@ namespace Game1
 			f = 0;
 			fRemove = 125;
 
-			// Kiểm tra tọa độ mục tiêu hợp lệ, nếu không có mục tiêu hoặc quá xa thì đánh trước mặt
-			if (charUse != null)
+			// Kiểm tra tọa độ mục tiêu: nếu chưa có tọa độ hợp lệ (x, y <= 0) mới tự tìm mục tiêu
+			if (x <= 0 || y <= 0)
 			{
-				if (charUse.mobFocus != null && !charUse.mobFocus.isDie && Res.distance(charUse.cx, charUse.cy, charUse.mobFocus.x, charUse.mobFocus.y) <= 350)
+				if (charUse != null)
 				{
-					x = charUse.mobFocus.x;
-					y = charUse.mobFocus.y;
-				}
-				else if (charUse.charFocus != null && !charUse.charFocus.isDie && Res.distance(charUse.cx, charUse.cy, charUse.charFocus.cx, charUse.charFocus.cy) <= 350)
-				{
-					x = charUse.charFocus.cx;
-					y = charUse.charFocus.cy;
-				}
-				else if (Res.distance(charUse.cx, charUse.cy, x, y) > 350 || x <= 0)
-				{
-					x = charUse.cx + charUse.cdir * 100;
-					y = charUse.cy;
+					if (charUse.mobFocus != null && !charUse.mobFocus.isDie && Res.distance(charUse.cx, charUse.cy, charUse.mobFocus.x, charUse.mobFocus.y) <= 350)
+					{
+						x = charUse.mobFocus.x;
+						y = charUse.mobFocus.y;
+					}
+					else if (charUse.charFocus != null && !charUse.charFocus.isDie && Res.distance(charUse.cx, charUse.cy, charUse.charFocus.cx, charUse.charFocus.cy) <= 350)
+					{
+						x = charUse.charFocus.cx;
+						y = charUse.charFocus.cy;
+					}
+					else
+					{
+						x = charUse.cx + charUse.cdir * 100;
+						y = charUse.cy;
+					}
 				}
 			}
 
@@ -2095,22 +2098,25 @@ namespace Game1
 		{
 			f = 0;
 			fRemove = 118;
-			if (charUse != null)
+			if (x <= 0 || y <= 0)
 			{
-				if (charUse.charFocus != null && !charUse.charFocus.isDie && Res.distance(charUse.cx, charUse.cy, charUse.charFocus.cx, charUse.charFocus.cy) <= 350)
+				if (charUse != null)
 				{
-					x = charUse.charFocus.cx;
-					y = charUse.charFocus.cy;
-				}
-				else if (charUse.mobFocus != null && !charUse.mobFocus.isDie && Res.distance(charUse.cx, charUse.cy, charUse.mobFocus.x, charUse.mobFocus.y) <= 350)
-				{
-					x = charUse.mobFocus.x;
-					y = charUse.mobFocus.y;
-				}
-				else if (Res.distance(charUse.cx, charUse.cy, x, y) > 350 || x <= 0)
-				{
-					x = charUse.cx + charUse.cdir * 120;
-					y = charUse.cy;
+					if (charUse.charFocus != null && !charUse.charFocus.isDie && Res.distance(charUse.cx, charUse.cy, charUse.charFocus.cx, charUse.charFocus.cy) <= 350)
+					{
+						x = charUse.charFocus.cx;
+						y = charUse.charFocus.cy;
+					}
+					else if (charUse.mobFocus != null && !charUse.mobFocus.isDie && Res.distance(charUse.cx, charUse.cy, charUse.mobFocus.x, charUse.mobFocus.y) <= 350)
+					{
+						x = charUse.mobFocus.x;
+						y = charUse.mobFocus.y;
+					}
+					else
+					{
+						x = charUse.cx + charUse.cdir * 120;
+						y = charUse.cy;
+					}
 				}
 			}
 
@@ -2138,20 +2144,6 @@ namespace Game1
 
 		private void upd_Skill_Meteor()
 		{
-			if (charUse != null)
-			{
-				if (charUse.charFocus != null && !charUse.charFocus.isDie && Res.distance(charUse.cx, charUse.cy, charUse.charFocus.cx, charUse.charFocus.cy) <= 350)
-				{
-					x = charUse.charFocus.cx;
-					y = charUse.charFocus.cy;
-				}
-				else if (charUse.mobFocus != null && !charUse.mobFocus.isDie && Res.distance(charUse.cx, charUse.cy, charUse.mobFocus.x, charUse.mobFocus.y) <= 350)
-				{
-					x = charUse.mobFocus.x;
-					y = charUse.mobFocus.y;
-				}
-			}
-
 			// Giai đoạn 1: Vòng tròn ma pháp mở ra dưới chân quái, runes bốc cháy
 			if (f == 2)
 			{

@@ -176,6 +176,20 @@ namespace Game1
 
 		public static bool isPaintSkill = false;
 
+		public static bool isAimingSkill = false;
+
+		public static Skill aimingSkill = null;
+
+		public static int aimTargetX = -1;
+
+		public static int aimTargetY = -1;
+
+		public static Skill skillDrag = null;
+
+		public static int skillDragStartX = -1;
+
+		public static int skillDragStartY = -1;
+
 		public static bool isPaintInfoMe = false;
 
 		public static bool isPaintStore = false;
@@ -2358,6 +2372,14 @@ namespace Game1
 			{
 				return;
 			}
+			if (isAimingSkill)
+			{
+				updateAimingSkill();
+				if (!isAimingSkill)
+				{
+					return;
+				}
+			}
 			if (GameCanvas.isTouch && !ChatTextField.gI().isShow && !GameCanvas.menu.showMenu)
 			{
 				UpdateKeyTouchControl();
@@ -3831,6 +3853,183 @@ namespace Game1
 			return true;
 		}
 
+		public void updateAimingSkill()
+		{
+			if (!isAimingSkill || aimingSkill == null)
+			{
+				isAimingSkill = false;
+				aimingSkill = null;
+				skillDrag = null;
+				return;
+			}
+
+			int rawX = GameCanvas.px + cmx;
+			int rawY = GameCanvas.py + cmy;
+			int myX = Char.myCharz().cx;
+			int myY = Char.myCharz().cy;
+			int d = Res.distance(myX, myY, rawX, rawY);
+			int maxRange = 350;
+
+			if (d > maxRange)
+			{
+				aimTargetX = myX + (rawX - myX) * maxRange / (d > 0 ? d : 1);
+				aimTargetY = myY + (rawY - myY) * maxRange / (d > 0 ? d : 1);
+			}
+			else
+			{
+				aimTargetX = rawX;
+				aimTargetY = rawY;
+			}
+
+			if (GameCanvas.keyPressed[11] || GameCanvas.keyAsciiPress == 27 || GameCanvas.keyPressed[13])
+			{
+				isAimingSkill = false;
+				aimingSkill = null;
+				skillDrag = null;
+				GameCanvas.clearAllPointerEvent();
+				return;
+			}
+
+			if (GameCanvas.isPointerJustRelease || (!GameCanvas.isPointerDown && GameCanvas.isPointerClick))
+			{
+				if (skillDrag != null && Res.distance(skillDragStartX, skillDragStartY, GameCanvas.px, GameCanvas.py) <= 15)
+				{
+					if (Char.myCharz().charFocus != null || Char.myCharz().mobFocus != null)
+					{
+						Char.myCharz().sendNewAttack((short)aimingSkill.template.id);
+					}
+					else
+					{
+						Char.myCharz().sendNewAttackWithPos((short)aimingSkill.template.id, (short)aimTargetX, (short)aimTargetY);
+					}
+				}
+				else
+				{
+					Char.myCharz().sendNewAttackWithPos((short)aimingSkill.template.id, (short)aimTargetX, (short)aimTargetY);
+				}
+
+				saveRMSCurrentSkill(aimingSkill.template.id);
+				lastSkill = aimingSkill;
+				selectedIndexSkill = -1;
+				isAimingSkill = false;
+				aimingSkill = null;
+				skillDrag = null;
+				keyTouchSkill = -1;
+				GameCanvas.clearAllPointerEvent();
+				return;
+			}
+
+			GameCanvas.isPointerJustDown = false;
+			GameCanvas.isPointerClick = false;
+		}
+
+		public void paintAimIndicator(mGraphics g)
+		{
+			if (!isAimingSkill || aimingSkill == null)
+			{
+				return;
+			}
+			int charX = Char.myCharz().cx;
+			int charY = Char.myCharz().cy;
+			int tX = aimTargetX;
+			int tY = aimTargetY;
+			int skillId = aimingSkill.template.id;
+
+			int primaryColor = (skillId == 29) ? 0x00E5FF : 0xBF00FF;
+			int ringColor = (skillId == 29) ? 0x80D8FF : 0xEA80FC;
+
+			// 1. Vòng tròn bán kính tầm xa cực đại (R = 350)
+			g.setColor(primaryColor, 0.3f);
+			int maxRange = 350;
+			int segments = 36;
+			for (int i = 0; i < segments; i++)
+			{
+				double a1 = (double)i * 3.141592653589793 * 2.0 / (double)segments;
+				double a2 = (double)(i + 1) * 3.141592653589793 * 2.0 / (double)segments;
+				int x1 = charX + (int)((double)maxRange * System.Math.Cos(a1));
+				int y1 = charY + (int)((double)maxRange * System.Math.Sin(a1));
+				int x2 = charX + (int)((double)maxRange * System.Math.Cos(a2));
+				int y2 = charY + (int)((double)maxRange * System.Math.Sin(a2));
+				g.drawLine(x1, y1, x2, y2);
+			}
+
+			// 2. Đường chỉ hướng từ nhân vật tới tâm ngắm
+			g.setColor(primaryColor, 0.7f);
+			int dist = Res.distance(charX, charY, tX, tY);
+			int step = 16;
+			if (dist > 0)
+			{
+				for (int d = 0; d < dist; d += step)
+				{
+					int x1 = charX + (tX - charX) * d / dist;
+					int y1 = charY + (tY - charY) * d / dist;
+					int dEnd = (d + step / 2 < dist) ? (d + step / 2) : dist;
+					int x2 = charX + (tX - charX) * dEnd / dist;
+					int y2 = charY + (tY - charY) * dEnd / dist;
+					g.drawLine(x1, y1, x2, y2);
+				}
+			}
+
+			// 3. Vòng tròn tâm ngắm (Reticle / AoE indicator)
+			int aoeR = 45;
+			g.setColor(ringColor, 0.85f);
+			int aoeSegments = 24;
+			for (int j = 0; j < aoeSegments; j++)
+			{
+				double a1 = (double)j * 3.141592653589793 * 2.0 / (double)aoeSegments;
+				double a2 = (double)(j + 1) * 3.141592653589793 * 2.0 / (double)aoeSegments;
+				int x1 = tX + (int)((double)aoeR * System.Math.Cos(a1));
+				int y1 = tY + (int)((double)aoeR * System.Math.Sin(a1));
+				int x2 = tX + (int)((double)aoeR * System.Math.Cos(a2));
+				int y2 = tY + (int)((double)aoeR * System.Math.Sin(a2));
+				g.drawLine(x1, y1, x2, y2);
+			}
+
+			// Crosshair tâm điểm
+			g.setColor(0xFFFFFF, 0.9f);
+			g.drawLine(tX - 10, tY, tX + 10, tY);
+			g.drawLine(tX, tY - 10, tX, tY + 10);
+			g.fillRect(tX - 2, tY - 2, 4, 4);
+
+			// Tên chiêu
+			string skillName = (skillId == 29) ? "Lôi Thần Trảm" : "Ma Pháp Tím";
+			mFont.tahoma_7_white.drawString(g, skillName, tX, tY - aoeR - 12, mFont.CENTER);
+
+			// Kiểm tra quái hoặc boss/người chơi lọt vào vùng ngắm
+			string targetFound = null;
+			for (int m = 0; m < vMob.size(); m++)
+			{
+				Mob mob = (Mob)vMob.elementAt(m);
+				if (mob != null && mob.status != 0 && mob.status != 1 && mob.hp > 0 && !mob.isMobMe)
+				{
+					if (Res.distance(tX, tY, mob.x, mob.y) <= aoeR + 15)
+					{
+						targetFound = mob.getTemplate().name;
+						break;
+					}
+				}
+			}
+			if (targetFound == null)
+			{
+				for (int c = 0; c < vCharInMap.size(); c++)
+				{
+					Char ch = (Char)vCharInMap.elementAt(c);
+					if (ch != null && ch.statusMe != 14 && ch.statusMe != 5 && ch.cHP > 0 && ch != Char.myCharz())
+					{
+						if (Res.distance(tX, tY, ch.cx, ch.cy) <= aoeR + 15)
+						{
+							targetFound = ch.cName;
+							break;
+						}
+					}
+				}
+			}
+			if (targetFound != null)
+			{
+				mFont.tahoma_7_green2.drawString(g, "[" + targetFound + "]", tX, tY + aoeR + 3, mFont.CENTER);
+			}
+		}
+
 		public void doSelectSkill(Skill skill, bool isShortcut)
 		{
 			if (Char.myCharz().isCreateDark || isCharging() || Char.myCharz().taskMaint.taskId <= 1 || ModFunc.isShowMenuChat)
@@ -3849,7 +4048,30 @@ namespace Game1
 			}
 			if (Char.myCharz().isUseSkillSpec())
 			{
-				Char.myCharz().sendNewAttack(skill.template.id);
+				if (skill.template.id == 29 || skill.template.id == 30)
+				{
+					if (Char.myCharz().charFocus != null || Char.myCharz().mobFocus != null)
+					{
+						Char.myCharz().sendNewAttack((short)skill.template.id);
+						saveRMSCurrentSkill(skill.template.id);
+						lastSkill = skill;
+						selectedIndexSkill = -1;
+						gI().auto = 0;
+						return;
+					}
+					isAimingSkill = true;
+					aimingSkill = skill;
+					skillDrag = null;
+					skillDragStartX = GameCanvas.px;
+					skillDragStartY = GameCanvas.py;
+					aimTargetX = Char.myCharz().cx + Char.myCharz().cdir * 100;
+					aimTargetY = Char.myCharz().cy;
+					saveRMSCurrentSkill(skill.template.id);
+					lastSkill = skill;
+					selectedIndexSkill = -1;
+					return;
+				}
+				Char.myCharz().sendNewAttack((short)skill.template.id);
 				saveRMSCurrentSkill(skill.template.id);
 				lastSkill = skill;
 				selectedIndexSkill = -1;
@@ -4169,6 +4391,31 @@ namespace Game1
 						num2 += 5;
 					}
 					keyTouchSkill = num2;
+					Skill touchedSkill = null;
+					if (!Main.isPC)
+					{
+						if (num2 >= 0 && num2 < onScreenSkill.Length)
+						{
+							touchedSkill = onScreenSkill[num2];
+						}
+					}
+					else if (num2 >= 0 && num2 < keySkill.Length)
+					{
+						touchedSkill = keySkill[num2];
+					}
+
+					if (touchedSkill != null && (touchedSkill.template.id == 29 || touchedSkill.template.id == 30))
+					{
+						skillDrag = touchedSkill;
+						skillDragStartX = GameCanvas.pxLast;
+						skillDragStartY = GameCanvas.pyLast;
+						isAimingSkill = true;
+						aimingSkill = touchedSkill;
+						aimTargetX = GameCanvas.px + cmx;
+						aimTargetY = GameCanvas.py + cmy;
+						return;
+					}
+
 					if (GameCanvas.isPointerClick && GameCanvas.isPointerJustRelease)
 					{
 						GameCanvas.isPointerClick = (GameCanvas.isPointerJustDown = (GameCanvas.isPointerJustRelease = false));
@@ -4946,6 +5193,7 @@ namespace Game1
 			{
 				paintInfoBar(g);
 			}
+			paintAimIndicator(g);
 			resetTranslate(g);
 			paint_xp_bar(g);
 			if (!isPaintOther)

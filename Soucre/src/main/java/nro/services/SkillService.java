@@ -95,7 +95,6 @@ public class SkillService {
             }
             if (st == 20 && skillId != player.playerSkill.skillSelect.template.id) {
                 selectSkill(player, skillId);
-                return false;
             }
             switch (player.playerSkill.skillSelect.template.type) {
                 case 1:
@@ -776,7 +775,7 @@ public class SkillService {
 
         // 1. Nếu chưa có mục tiêu khóa, tìm đối tượng duy nhất gần tâm sét nhất (ưu tiên Boss/Player nếu cự ly tương đương)
         if (player.skillSpecial.targetMob == null && player.skillSpecial.targetPlayer == null) {
-            int minMobDist = range;
+            int minMobDist = 100;
             Mob closestMob = null;
             for (Mob mobMap : player.zone.mobs) {
                 if (mobMap != null && !mobMap.isDie()) {
@@ -788,7 +787,7 @@ public class SkillService {
                 }
             }
 
-            int minPlDist = range;
+            int minPlDist = 100;
             Player closestPl = null;
             List<Player> targetList = new ArrayList<>(player.zone.getHumanoids());
             for (Player b : player.zone.getBosses()) {
@@ -914,7 +913,7 @@ public class SkillService {
         }
 
         if (player.skillSpecial.targetMob == null && player.skillSpecial.targetPlayer == null) {
-            int minMobDist = range;
+            int minMobDist = 100;
             Mob closestMob = null;
             for (Mob mobMap : player.zone.mobs) {
                 if (mobMap != null && !mobMap.isDie()) {
@@ -926,7 +925,7 @@ public class SkillService {
                 }
             }
 
-            int minPlDist = range;
+            int minPlDist = 100;
             Player closestPl = null;
             List<Player> targetList = new ArrayList<>(player.zone.getHumanoids());
             for (Player b : player.zone.getBosses()) {

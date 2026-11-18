@@ -7242,6 +7242,13 @@ namespace Game1
 			Service.gI().new_skill_not_focus((sbyte)idTemplateSkill, (sbyte)cdir, x, y);
 		}
 
+		public void sendNewAttackWithPos(short idTemplateSkill, short targetX, short targetY)
+		{
+			sbyte dir = (sbyte)((targetX < cx) ? -1 : 1);
+			cdir = dir;
+			Service.gI().new_skill_not_focus((sbyte)idTemplateSkill, dir, targetX, targetY);
+		}
+
 		public void SetSkillPaint_NEW(short idskillPaint, bool isFly, sbyte typeFrame, sbyte typePaint, sbyte dir, short timeGong, sbyte typeItem, sbyte level)
 		{
 			isPaintNewSkill = true;
