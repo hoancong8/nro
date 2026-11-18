@@ -190,6 +190,8 @@ namespace Game1
 
 		public static int skillDragStartY = -1;
 
+		public static long aimStartFrameTime = 0L;
+
 		public static bool isPaintInfoMe = false;
 
 		public static bool isPaintStore = false;
@@ -3920,23 +3922,39 @@ namespace Game1
 			int myY = Char.myCharz().cy;
 			int maxRange = 350;
 
-			int curPx = (Main.isPC && skillDrag == null) ? GameCanvas.pxMouse : GameCanvas.px;
-			int curPy = (Main.isPC && skillDrag == null) ? GameCanvas.pyMouse : GameCanvas.py;
-
-			// Tính toán vị trí chỉ định mục tiêu (tương tự game mobile)
-			if (skillDrag != null && skillDragStartX > 0)
+			if (Main.isPC)
 			{
-				int dragDx = curPx - skillDragStartX;
-				int dragDy = curPy - skillDragStartY;
-				int dragDist = Res.distance(0, 0, dragDx, dragDy);
+				// TRÊN PC: TÂM NGẮM LUÔN BÁM CHUẨN 100% THEO CON TRỎ CHUỘT TRÊN BẢN ĐỒ
+				int mouseScrX = (GameCanvas.isPointerDown ? GameCanvas.px : GameCanvas.pxMouse);
+				int mouseScrY = (GameCanvas.isPointerDown ? GameCanvas.py : GameCanvas.pyMouse);
+				int mapMouseX = mouseScrX + cmx;
+				int mapMouseY = mouseScrY + cmy;
 
-				if (dragDist > 15)
+				int d = Res.distance(myX, myY, mapMouseX, mapMouseY);
+				if (d > maxRange)
 				{
-					// Nếu kéo gần quanh nút skill (dưới 90px): hoạt động như joystick điều hướng chiêu
-					if (dragDist <= 90)
+					aimTargetX = myX + (mapMouseX - myX) * maxRange / (d > 0 ? d : 1);
+					aimTargetY = myY + (mapMouseY - myY) * maxRange / (d > 0 ? d : 1);
+				}
+				else
+				{
+					aimTargetX = mapMouseX;
+					aimTargetY = mapMouseY;
+				}
+			}
+			else
+			{
+				// TRÊN MOBILE: KÉO CẦN XOAY JOYSTICK TỪ Ô CHIÊU
+				if (skillDrag != null && skillDragStartX > 0)
+				{
+					int dragDx = GameCanvas.px - skillDragStartX;
+					int dragDy = GameCanvas.py - skillDragStartY;
+					int dragDist = Res.distance(0, 0, dragDx, dragDy);
+
+					if (dragDist > 15)
 					{
-						int tOffsetX = (int)((float)dragDx * 4.5f);
-						int tOffsetY = (int)((float)dragDy * 4.5f);
+						int tOffsetX = (int)((float)dragDx * 3.5f);
+						int tOffsetY = (int)((float)dragDy * 3.5f);
 						int tDist = Res.distance(0, 0, tOffsetX, tOffsetY);
 						if (tDist > maxRange)
 						{
@@ -3948,62 +3966,28 @@ namespace Game1
 					}
 					else
 					{
-						// Nếu kéo chuột/ngón tay xa ra trực tiếp trên bản đồ:
-						int rawX = curPx + cmx;
-						int rawY = curPy + cmy;
-						int d = Res.distance(myX, myY, rawX, rawY);
-						if (d > maxRange)
+						// Vừa chạm nút chưa kéo: đặt tại mục tiêu focus nếu có
+						if (Char.myCharz().charFocus != null && !Char.myCharz().charFocus.isDie && Res.distance(myX, myY, Char.myCharz().charFocus.cx, Char.myCharz().charFocus.cy) <= maxRange)
 						{
-							aimTargetX = myX + (rawX - myX) * maxRange / (d > 0 ? d : 1);
-							aimTargetY = myY + (rawY - myY) * maxRange / (d > 0 ? d : 1);
+							aimTargetX = Char.myCharz().charFocus.cx;
+							aimTargetY = Char.myCharz().charFocus.cy;
+						}
+						else if (Char.myCharz().mobFocus != null && !Char.myCharz().mobFocus.isDie && Res.distance(myX, myY, Char.myCharz().mobFocus.x, Char.myCharz().mobFocus.y) <= maxRange)
+						{
+							aimTargetX = Char.myCharz().mobFocus.x;
+							aimTargetY = Char.myCharz().mobFocus.y;
 						}
 						else
 						{
-							aimTargetX = rawX;
-							aimTargetY = rawY;
+							aimTargetX = myX + Char.myCharz().cdir * 120;
+							aimTargetY = myY;
 						}
 					}
 				}
-				else
-				{
-					// Chưa kéo xa (vừa mới chạm nút): đặt vị trí mặc định tại mục tiêu đang focus hoặc trước mặt
-					if (Char.myCharz().charFocus != null && !Char.myCharz().charFocus.isDie && Res.distance(myX, myY, Char.myCharz().charFocus.cx, Char.myCharz().charFocus.cy) <= maxRange)
-					{
-						aimTargetX = Char.myCharz().charFocus.cx;
-						aimTargetY = Char.myCharz().charFocus.cy;
-					}
-					else if (Char.myCharz().mobFocus != null && !Char.myCharz().mobFocus.isDie && Res.distance(myX, myY, Char.myCharz().mobFocus.x, Char.myCharz().mobFocus.y) <= maxRange)
-					{
-						aimTargetX = Char.myCharz().mobFocus.x;
-						aimTargetY = Char.myCharz().mobFocus.y;
-					}
-					else
-					{
-						aimTargetX = myX + Char.myCharz().cdir * 120;
-						aimTargetY = myY;
-					}
-				}
-			}
-			else
-			{
-				// Điều hướng bằng chuột / phím tắt PC: bám theo con trỏ chuột
-				int rawX = curPx + cmx;
-				int rawY = curPy + cmy;
-				int d = Res.distance(myX, myY, rawX, rawY);
-				if (d > maxRange)
-				{
-					aimTargetX = myX + (rawX - myX) * maxRange / (d > 0 ? d : 1);
-					aimTargetY = myY + (rawY - myY) * maxRange / (d > 0 ? d : 1);
-				}
-				else
-				{
-					aimTargetX = rawX;
-					aimTargetY = rawY;
-				}
 			}
 
-			// Phím hủy (Esc) hoặc nhấp chuột phải
-			if (GameCanvas.keyPressed[11] || GameCanvas.keyAsciiPress == 27 || GameCanvas.keyPressed[13])
+			// Phím hủy: Esc, phím Q (113), hoặc nhấp chuột phải
+			if (UnityEngine.Input.GetMouseButtonDown(1) || GameCanvas.keyPressed[11] || GameCanvas.keyAsciiPress == 27 || GameCanvas.keyPressed[13])
 			{
 				isAimingSkill = false;
 				aimingSkill = null;
@@ -4013,21 +3997,54 @@ namespace Game1
 			}
 
 			// XÁC NHẬN TUNG CHIÊU:
-			// Trường hợp 1: Kéo thả từ nút skill
 			if (skillDrag != null)
 			{
+				// Trường hợp đang giữ chuột/ngón tay kéo từ nút skill
 				if (GameCanvas.isPointerJustRelease || !GameCanvas.isPointerDown)
 				{
-					int dragDist = Res.distance(skillDragStartX, skillDragStartY, curPx, curPy);
-					// Nếu chỉ tap nhẹ tại ô skill không kéo (dragDist <= 15) và có mục tiêu đang focus: tự động tấn công mục tiêu cũ
-					if (dragDist <= 15 && (Char.myCharz().charFocus != null || Char.myCharz().mobFocus != null))
+					int curMx = (Main.isPC ? (GameCanvas.isPointerDown ? GameCanvas.px : GameCanvas.pxMouse) : GameCanvas.px);
+					int curMy = (Main.isPC ? (GameCanvas.isPointerDown ? GameCanvas.py : GameCanvas.pyMouse) : GameCanvas.py);
+					int dragDist = Res.distance(skillDragStartX, skillDragStartY, curMx, curMy);
+
+					if (Main.isPC)
 					{
-						Char.myCharz().sendNewAttack((short)aimingSkill.template.id);
+						// TRÊN PC:
+						// Nếu chỉ click nhẹ vào ô skill (dragDist <= 25):
+						// -> Giữ chế độ ngắm chuột tự do (skillDrag = null).
+						// Tâm ngắm tiếp tục bám theo con trỏ chuột, người chơi chỉ cần di chuột đến vị trí mong muốn rồi click chuột trái để đặt chiêu!
+						if (dragDist <= 25)
+						{
+							skillDrag = null;
+							aimStartFrameTime = mSystem.currentTimeMillis();
+							GameCanvas.clearAllPointerEvent();
+							return;
+						}
+						else
+						{
+							// Nếu đã kéo chuột ra xa ô skill: nhả chuột để tung chiêu ngay tại vị trí đang chỉ định
+							Char.myCharz().sendNewAttackWithPos((short)aimingSkill.template.id, (short)aimTargetX, (short)aimTargetY);
+						}
 					}
 					else
 					{
-						// Kéo thả hoặc tap vào vùng đất: tung chiêu tại vị trí chỉ định
-						Char.myCharz().sendNewAttackWithPos((short)aimingSkill.template.id, (short)aimTargetX, (short)aimTargetY);
+						// TRÊN MOBILE:
+						// Nếu chỉ chạm nhẹ vào nút skill không kéo joystick:
+						if (dragDist <= 20)
+						{
+							if (Char.myCharz().charFocus != null || Char.myCharz().mobFocus != null)
+							{
+								Char.myCharz().sendNewAttack((short)aimingSkill.template.id);
+							}
+							else
+							{
+								Char.myCharz().sendNewAttackWithPos((short)aimingSkill.template.id, (short)aimTargetX, (short)aimTargetY);
+							}
+						}
+						else
+						{
+							// Thả joystick sau khi kéo: tung chiêu tại vị trí đã ngắm
+							Char.myCharz().sendNewAttackWithPos((short)aimingSkill.template.id, (short)aimTargetX, (short)aimTargetY);
+						}
 					}
 
 					saveRMSCurrentSkill(aimingSkill.template.id);
@@ -4040,27 +4057,33 @@ namespace Game1
 					GameCanvas.clearAllPointerEvent();
 					return;
 				}
-				// Chặn click làm di chuyển nhân vật khi đang kéo skill
+				// Chặn click làm di chuyển nhân vật khi đang ngắm
 				GameCanvas.isPointerJustDown = false;
 				GameCanvas.isPointerClick = false;
 			}
 			else
 			{
-				// Trường hợp 2: Bật định vị bằng phím tắt / click chọn chiêu trên PC
-				if (GameCanvas.isPointerJustRelease || GameCanvas.isPointerClick || GameCanvas.keyPressed[5] || GameCanvas.keyAsciiPress == 32)
+				// Trường hợp ngắm chuột tự do (bật bằng phím tắt hoặc click chọn ô skill trên PC):
+				// Tránh ăn nhầm click khởi tạo ban đầu trong 200ms
+				long elapsed = mSystem.currentTimeMillis() - aimStartFrameTime;
+				if (elapsed > 200)
 				{
-					Char.myCharz().sendNewAttackWithPos((short)aimingSkill.template.id, (short)aimTargetX, (short)aimTargetY);
-					saveRMSCurrentSkill(aimingSkill.template.id);
-					lastSkill = aimingSkill;
-					selectedIndexSkill = -1;
-					isAimingSkill = false;
-					aimingSkill = null;
-					skillDrag = null;
-					keyTouchSkill = -1;
-					GameCanvas.clearAllPointerEvent();
-					return;
+					// Click chuột trái vào bản đồ hoặc phím Space để xác nhận điểm đặt chiêu
+					if (GameCanvas.isPointerJustRelease || GameCanvas.isPointerClick || GameCanvas.keyAsciiPress == 32)
+					{
+						Char.myCharz().sendNewAttackWithPos((short)aimingSkill.template.id, (short)aimTargetX, (short)aimTargetY);
+						saveRMSCurrentSkill(aimingSkill.template.id);
+						lastSkill = aimingSkill;
+						selectedIndexSkill = -1;
+						isAimingSkill = false;
+						aimingSkill = null;
+						skillDrag = null;
+						keyTouchSkill = -1;
+						GameCanvas.clearAllPointerEvent();
+						return;
+					}
 				}
-				// Chặn click làm di chuyển nhân vật
+				// Chặn click làm di chuyển nhân vật khi đang ngắm
 				GameCanvas.isPointerJustDown = false;
 			}
 		}
@@ -4202,11 +4225,86 @@ namespace Game1
 
 		public void doSelectSkill(Skill skill, bool isShortcut)
 		{
-			if (Char.myCharz().isCreateDark || isCharging() || Char.myCharz().taskMaint.taskId <= 1 || ModFunc.isShowMenuChat)
+			if (skill == null || Char.myCharz().isCreateDark || isCharging() || Char.myCharz().taskMaint.taskId <= 1 || ModFunc.isShowMenuChat)
 			{
 				return;
 			}
 			Char.myCharz().myskill = skill;
+
+			// KỸ NĂNG ĐỊNH VỊ CHIÊU (29: Lôi Thần Trảm, 30: Thiên Thạch Trảm)
+			if (skill.template.id == 29 || skill.template.id == 30)
+			{
+				long now = mSystem.currentTimeMillis();
+				if (now - skill.lastTimeUseThisSkill < skill.coolDown)
+				{
+					skill.paintCanNotUseSkill = true;
+					info1.addInfo(mResources.cooldown + " " + ((skill.coolDown - (now - skill.lastTimeUseThisSkill)) / 1000 + 1) + "s", 0);
+					return;
+				}
+
+				// Nếu đang trong chế độ ngắm mà bấm phím skill lần nữa: tung chiêu ngay tại vị trí đã ngắm
+				if (isAimingSkill && aimingSkill == skill)
+				{
+					Char.myCharz().sendNewAttackWithPos((short)skill.template.id, (short)aimTargetX, (short)aimTargetY);
+					saveRMSCurrentSkill(skill.template.id);
+					lastSkill = skill;
+					selectedIndexSkill = -1;
+					isAimingSkill = false;
+					aimingSkill = null;
+					skillDrag = null;
+					keyTouchSkill = -1;
+					GameCanvas.clearAllPointerEvent();
+					return;
+				}
+
+				// Bật chế độ ngắm định vị chiêu ngay lập tức (không cần bấm 2 lần)
+				isAimingSkill = true;
+				aimingSkill = skill;
+				skillDrag = null;
+				aimStartFrameTime = mSystem.currentTimeMillis();
+				int pointerX = (Main.isPC ? (GameCanvas.isPointerDown ? GameCanvas.px : GameCanvas.pxMouse) : GameCanvas.px);
+				int pointerY = (Main.isPC ? (GameCanvas.isPointerDown ? GameCanvas.py : GameCanvas.pyMouse) : GameCanvas.py);
+				skillDragStartX = pointerX;
+				skillDragStartY = pointerY;
+
+				if (Main.isPC)
+				{
+					int mapMouseX = pointerX + cmx;
+					int mapMouseY = pointerY + cmy;
+					int d = Res.distance(Char.myCharz().cx, Char.myCharz().cy, mapMouseX, mapMouseY);
+					if (d > 350)
+					{
+						aimTargetX = Char.myCharz().cx + (mapMouseX - Char.myCharz().cx) * 350 / (d > 0 ? d : 1);
+						aimTargetY = Char.myCharz().cy + (mapMouseY - Char.myCharz().cy) * 350 / (d > 0 ? d : 1);
+					}
+					else
+					{
+						aimTargetX = mapMouseX;
+						aimTargetY = mapMouseY;
+					}
+				}
+				else if (Char.myCharz().charFocus != null && !Char.myCharz().charFocus.isDie && Res.distance(Char.myCharz().cx, Char.myCharz().cy, Char.myCharz().charFocus.cx, Char.myCharz().charFocus.cy) <= 350)
+				{
+					aimTargetX = Char.myCharz().charFocus.cx;
+					aimTargetY = Char.myCharz().charFocus.cy;
+				}
+				else if (Char.myCharz().mobFocus != null && !Char.myCharz().mobFocus.isDie && Res.distance(Char.myCharz().cx, Char.myCharz().cy, Char.myCharz().mobFocus.x, Char.myCharz().mobFocus.y) <= 350)
+				{
+					aimTargetX = Char.myCharz().mobFocus.x;
+					aimTargetY = Char.myCharz().mobFocus.y;
+				}
+				else
+				{
+					aimTargetX = Char.myCharz().cx + Char.myCharz().cdir * 120;
+					aimTargetY = Char.myCharz().cy;
+				}
+
+				saveRMSCurrentSkill(skill.template.id);
+				lastSkill = skill;
+				selectedIndexSkill = -1;
+				return;
+			}
+
 			if (lastSkill != skill && lastSkill != null)
 			{
 				Service.gI().selectSkill(skill.template.id);
@@ -4218,61 +4316,6 @@ namespace Game1
 			}
 			if (Char.myCharz().isUseSkillSpec())
 			{
-				if (skill.template.id == 29 || skill.template.id == 30)
-				{
-					long now = mSystem.currentTimeMillis();
-					if (now - skill.lastTimeUseThisSkill < skill.coolDown)
-					{
-						skill.paintCanNotUseSkill = true;
-						info1.addInfo(mResources.cooldown + " " + ((skill.coolDown - (now - skill.lastTimeUseThisSkill)) / 1000 + 1) + "s", 0);
-						return;
-					}
-
-					// Nếu đang trong chế độ ngắm mà bấm phím skill lần nữa: tung chiêu ngay tại vị trí đã ngắm
-					if (isAimingSkill && aimingSkill == skill)
-					{
-						Char.myCharz().sendNewAttackWithPos((short)skill.template.id, (short)aimTargetX, (short)aimTargetY);
-						saveRMSCurrentSkill(skill.template.id);
-						lastSkill = skill;
-						selectedIndexSkill = -1;
-						isAimingSkill = false;
-						aimingSkill = null;
-						skillDrag = null;
-						keyTouchSkill = -1;
-						GameCanvas.clearAllPointerEvent();
-						return;
-					}
-
-					// Bật chế độ ngắm định vị chiêu
-					isAimingSkill = true;
-					aimingSkill = skill;
-					skillDrag = null;
-					int pointerX = (Main.isPC ? GameCanvas.pxMouse : GameCanvas.px);
-					int pointerY = (Main.isPC ? GameCanvas.pyMouse : GameCanvas.py);
-					skillDragStartX = pointerX;
-					skillDragStartY = pointerY;
-
-					if (Char.myCharz().charFocus != null && !Char.myCharz().charFocus.isDie && Res.distance(Char.myCharz().cx, Char.myCharz().cy, Char.myCharz().charFocus.cx, Char.myCharz().charFocus.cy) <= 350)
-					{
-						aimTargetX = Char.myCharz().charFocus.cx;
-						aimTargetY = Char.myCharz().charFocus.cy;
-					}
-					else if (Char.myCharz().mobFocus != null && !Char.myCharz().mobFocus.isDie && Res.distance(Char.myCharz().cx, Char.myCharz().cy, Char.myCharz().mobFocus.x, Char.myCharz().mobFocus.y) <= 350)
-					{
-						aimTargetX = Char.myCharz().mobFocus.x;
-						aimTargetY = Char.myCharz().mobFocus.y;
-					}
-					else
-					{
-						aimTargetX = pointerX + cmx;
-						aimTargetY = pointerY + cmy;
-					}
-
-					saveRMSCurrentSkill(skill.template.id);
-					lastSkill = skill;
-					selectedIndexSkill = -1;
-					return;
-				}
 				Char.myCharz().sendNewAttack((short)skill.template.id);
 				saveRMSCurrentSkill(skill.template.id);
 				lastSkill = skill;
@@ -4620,8 +4663,19 @@ namespace Game1
 						skillDragStartY = GameCanvas.pyLast;
 						isAimingSkill = true;
 						aimingSkill = touchedSkill;
-						aimTargetX = GameCanvas.px + cmx;
-						aimTargetY = GameCanvas.py + cmy;
+						aimStartFrameTime = mSystem.currentTimeMillis();
+						if (Main.isPC)
+						{
+							int curPx = (GameCanvas.isPointerDown ? GameCanvas.px : GameCanvas.pxMouse);
+							int curPy = (GameCanvas.isPointerDown ? GameCanvas.py : GameCanvas.pyMouse);
+							aimTargetX = curPx + cmx;
+							aimTargetY = curPy + cmy;
+						}
+						else
+						{
+							aimTargetX = GameCanvas.px + cmx;
+							aimTargetY = GameCanvas.py + cmy;
+						}
 						return;
 					}
 
