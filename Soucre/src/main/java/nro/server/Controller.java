@@ -702,6 +702,9 @@ public class Controller {
                         if (player != null) {
                             Service.getInstance().player(player);
                             Service.getInstance().Send_Caitrang(player);
+                            InventoryService.gI().sendItemBags(player);
+                            InventoryService.gI().sendItemBody(player);
+                            InventoryService.gI().sendItemBox(player);
                             player.zone.loadAnotherToMe(player);
 
                             // -64 my flag bag

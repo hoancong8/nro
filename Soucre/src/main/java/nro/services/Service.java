@@ -750,6 +750,13 @@ public class Service {
               if (text.equals("skilltt") || text.equals("thienthach")) {
                   SkillService.gI().learSkillSpecial(player, Skill.THIEN_THACH);
               }
+              if (text.equals("item") || text.equals("loaditem") || text.equals("do")) {
+                  InventoryService.gI().sendItemBags(player);
+                  InventoryService.gI().sendItemBody(player);
+                  InventoryService.gI().sendItemBox(player);
+                  Service.getInstance().sendThongBao(player, "Đã làm mới hành trang!");
+                  return;
+              }
             
             if (text.equals("skillnm")) {
                 StringBuffer sb = new StringBuffer();

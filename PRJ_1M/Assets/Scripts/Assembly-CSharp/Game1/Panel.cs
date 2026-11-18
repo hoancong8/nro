@@ -6551,32 +6551,35 @@ namespace Game1
                             {
                                 for (int l = 0; l < item.itemOption.Length; l++)
                                 {
-                                    if (item.itemOption[l].optionTemplate.id == 72)
+                                    if (item.itemOption[l] != null && item.itemOption[l].optionTemplate != null)
                                     {
-                                        text = " [+" + item.itemOption[l].param + "]";
-                                    }
-                                    if (item.itemOption[l].optionTemplate.id == 107)
-                                    {
-                                        if (item.itemOption[l].param > 0)
-                                            paintItemStar(g, item.itemOption[l].param.ToString(), num2 + 125, num3);
-                                    }
-                                    if (item.itemOption[l].optionTemplate.id == 41)
-                                    {
-                                        if (item.itemOption[l].param == 1)
+                                        if (item.itemOption[l].optionTemplate.id == 72)
                                         {
-                                            mFont2 = GetFont(0);
+                                            text = " [+" + item.itemOption[l].param + "]";
                                         }
-                                        else if (item.itemOption[l].param == 2)
+                                        if (item.itemOption[l].optionTemplate.id == 107)
                                         {
-                                            mFont2 = GetFont(2);
+                                            if (item.itemOption[l].param > 0)
+                                                paintItemStar(g, item.itemOption[l].param.ToString(), num2 + 125, num3);
                                         }
-                                        else if (item.itemOption[l].param == 3)
+                                        if (item.itemOption[l].optionTemplate.id == 41)
                                         {
-                                            mFont2 = GetFont(8);
-                                        }
-                                        else if (item.itemOption[l].param == 4)
-                                        {
-                                            mFont2 = GetFont(7);
+                                            if (item.itemOption[l].param == 1)
+                                            {
+                                                mFont2 = GetFont(0);
+                                            }
+                                            else if (item.itemOption[l].param == 2)
+                                            {
+                                                mFont2 = GetFont(2);
+                                            }
+                                            else if (item.itemOption[l].param == 3)
+                                            {
+                                                mFont2 = GetFont(8);
+                                            }
+                                            else if (item.itemOption[l].param == 4)
+                                            {
+                                                mFont2 = GetFont(7);
+                                            }
                                         }
                                     }
                                 }
@@ -6589,9 +6592,12 @@ namespace Game1
                             {
                                 for (int n = 0; n < item.itemOption.Length; n++)
                                 {
-                                    paintOptItem(g, item.itemOption[n].optionTemplate.id, item.itemOption[n].param, num6, num7, num8, num9);
+                                    if (item.itemOption[n] != null && item.itemOption[n].optionTemplate != null)
+                                    {
+                                        paintOptItem(g, item.itemOption[n].optionTemplate.id, item.itemOption[n].param, num6, num7, num8, num9);
+                                    }
                                 }
-                                if (item.itemOption.Length > 0 && item.itemOption[0] != null && item.itemOption[0].optionTemplate.id != 102 && item.itemOption[0].optionTemplate.id != 107)
+                                if (item.itemOption.Length > 0 && item.itemOption[0] != null && item.itemOption[0].optionTemplate != null && item.itemOption[0].optionTemplate.id != 102 && item.itemOption[0].optionTemplate.id != 107)
                                 {
                                     text2 += item.itemOption[0].getOptionString();
                                 }
@@ -6640,7 +6646,7 @@ namespace Game1
                             paintEffectItem(g, arrItemBag[k], x, y);
                             for (int l = 0; l < itemBag.itemOption.Length; l++)
                             {
-                                if (itemBag.itemOption[l].optionTemplate.id == 107)
+                                if (itemBag.itemOption[l] != null && itemBag.itemOption[l].optionTemplate != null && itemBag.itemOption[l].optionTemplate.id == 107)
                                 {
                                     if (itemBag.itemOption[l].param > 0)
                                     {

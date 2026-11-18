@@ -5408,7 +5408,10 @@ namespace Game1
                             for (sbyte b6 = 0; b6 < b2; b6++)
                             {
                                 Skill skill3 = Skills.get(msg.reader().readShort());
-                                useSkill(skill3);
+                                if (skill3 != null)
+                                {
+                                    useSkill(skill3);
+                                }
                             }
                             GameScr.gI().sortSkill();
                             GameScr.gI().loadSkillShortcut();
@@ -5874,10 +5877,13 @@ namespace Game1
                         {
                             short num = msg.reader().readShort();
                             Skill skill = Skills.get(num);
-                            useSkill(skill);
-                            if (num != 0 && num != 14 && num != 28)
+                            if (skill != null)
                             {
-                                GameScr.info1.addInfo(mResources.LEARN_SKILL + " " + skill.template.name, 0);
+                                useSkill(skill);
+                                if (num != 0 && num != 14 && num != 28)
+                                {
+                                    GameScr.info1.addInfo(mResources.LEARN_SKILL + " " + skill.template.name, 0);
+                                }
                             }
                             break;
                         }
@@ -5902,6 +5908,10 @@ namespace Game1
 
         private void useSkill(Skill skill)
         {
+            if (skill == null || skill.template == null)
+            {
+                return;
+            }
             if (Char.myCharz().myskill == null)
             {
                 Char.myCharz().myskill = skill;

@@ -353,6 +353,9 @@ public class Session {
             controller.sendInfo(this);
             Service.getInstance().player(player);
             Service.getInstance().Send_Caitrang(player);
+            InventoryService.gI().sendItemBags(player);
+            InventoryService.gI().sendItemBody(player);
+            InventoryService.gI().sendItemBox(player);
 
             // -64 my flag bag
             Service.getInstance().sendFlagBag(player);
