@@ -7300,6 +7300,8 @@ namespace Game1
 				break;
 			case 30:
 				this.typeFrame = 4;
+				GameScr.addEffectEnd_Target(18, 0, typePaint, clone(), null, 3, timeGong, 0, level);
+				GameScr.addEffectEnd_Target(21, 0, typePaint, clone(), null, 1, timeGong, 0, level);
 				GameScr.addEffectEnd_Target(31, 0, typePaint, clone(), null, 1, timeGong, 0, level);
 				SoundMn.playSound(cx, cy, SoundMn.GONG, SoundMn.volume);
 				break;
@@ -7422,15 +7424,15 @@ namespace Game1
 					{
 						if (charFocus != null && !charFocus.isPet && !charFocus.isMiniPet && Res.distance(cx, cy, charFocus.cx, charFocus.cy) <= 350)
 						{
-							strikeTarget = new Point { x = charFocus.cx, y = ((charFocus.ySd > 0) ? charFocus.ySd : charFocus.cy) };
+							strikeTarget = new Point { x = charFocus.cx, y = ((charFocus.ySd > 0 && Math.abs(charFocus.ySd - charFocus.cy) <= 40) ? charFocus.ySd : (charFocus.cy + 10)) };
 						}
 						else if (mobFocus != null && Res.distance(cx, cy, mobFocus.x, mobFocus.y) <= 350)
 						{
-							strikeTarget = new Point { x = mobFocus.x, y = ((mobFocus.ySd > 0) ? mobFocus.ySd : (mobFocus.y + 15)) };
+							strikeTarget = new Point { x = mobFocus.x, y = ((mobFocus.ySd > 0 && Math.abs(mobFocus.ySd - mobFocus.y) <= 40) ? mobFocus.ySd : (mobFocus.y + 15)) };
 						}
 						else
 						{
-							strikeTarget = new Point { x = cx + ((cdir == -1) ? -120 : 120), y = cy };
+							strikeTarget = new Point { x = cx + ((cdir == -1) ? -120 : 120), y = ((ySd > 0 && Math.abs(ySd - cy) <= 40) ? ySd : (cy + 10)) };
 						}
 					}
 					GameScr.shock_scr = 10;

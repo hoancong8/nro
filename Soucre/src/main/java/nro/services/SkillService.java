@@ -260,7 +260,7 @@ public class SkillService {
                     player.skillSpecial.lastTimeSkillSpecial = System.currentTimeMillis();
                     player.skillSpecial.stepSkillSpecial = 1;
                     this.startSkillSpecialID30(player, 0);
-                } else if (player.skillSpecial.stepSkillSpecial == 1 && Util.canDoWithTime(player.skillSpecial.lastTimeSkillSpecial, 650)) {
+                } else if (player.skillSpecial.stepSkillSpecial == 1 && Util.canDoWithTime(player.skillSpecial.lastTimeSkillSpecial, 1100)) {
                     player.skillSpecial.lastTimeSkillSpecial = System.currentTimeMillis();
                     player.skillSpecial.stepSkillSpecial = 2;
                     dealDamageThienThach(player, strikeX, strikeY, range, baseDame);
